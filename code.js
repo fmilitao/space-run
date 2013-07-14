@@ -6,7 +6,7 @@ var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 //Canvas dimensions
-var W = 500; var H = 500;
+var W = 800; var H = 500;
 
 //Lets create an array of particles
 var particles = [];
