@@ -86,6 +86,6 @@ var draw = function()
 }
 
 // animation intervals
-var fps = 60;
+var fps = 30;
 var interval = 1000/fps;
 setInterval(draw, interval);

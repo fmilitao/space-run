@@ -3,3 +3,6 @@ NOTES:
  - if background image is needed
    var background = new Image();
    background.src = "../Filipe/www/background.jpg";
+
+ - git commit -a -m MESSAGE
+   to include modified files and the message before pushing
