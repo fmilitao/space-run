@@ -1,22 +1,22 @@
 
-//Lets create a simple particle system in HTML5 canvas and JS
-
-//Initializing the canvas
+// canvas setup
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-//Canvas dimensions
-var W = 800; var H = 500;
+var W = 800; //window.innerWidth;
+var H = 400; //window.innerHeight;
 
-//Lets create an array of particles
+// set canvas dimensions using just javascript
+ctx.canvas.width  = W;
+ctx.canvas.height = H;
+
+
 var particles = [];
 for(var i = 0; i < 5; i++)
 {
-	//This will add 50 particles to the array with random positions
 	particles.push(new create_particle());
 }
 
-//Lets create a function which will help us to create multiple particles
 function create_particle()
 {
 	//Random position on the canvas
@@ -37,12 +37,9 @@ function create_particle()
 	this.radius = Math.random()*20+20;
 }
 
-var x = 100; var y = 100;
+//var x = 100; var y = 100;
 
-//var background = new Image();
-//background.src = "../Filipe/www/background.jpg";
 
-//Lets animate the particle
 var draw = function()
 {
 	//Moving this BG paint code insde draw() will help remove the trail
@@ -53,10 +50,6 @@ var draw = function()
 	//Lets reduce the opacity of the BG paint to give the final touch
 	ctx.fillStyle = "rgba(0, 0, 0, 0.3)";
 	ctx.fillRect(0, 0, W, H);
-        //ctx.drawImage(background,0,0);   
-	
-        //var img = document.getElementsByTagName('img')[0];
-        //img.src = canvas.toDataURL();
   
 	//Lets blend the particle with the BG
 	ctx.globalCompositeOperation = "lighter";
@@ -92,8 +85,7 @@ var draw = function()
 	}
 }
 
+// animation intervals
 var fps = 60;
 var interval = 1000/fps;
 setInterval(draw, interval);
-//I hope that you enjoyed the tutorial :)
-

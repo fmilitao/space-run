@@ -1,1 +1,5 @@
-blah
+NOTES:
+
+ - if background image is needed
+   var background = new Image();
+   background.src = "../Filipe/www/background.jpg";
