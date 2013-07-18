@@ -1,4 +1,33 @@
 
+var rot = 0;
+
+// http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+window.addEventListener( "keydown", function(e) {
+		//console.log(e);
+		
+		// FIXME: key codes are messy way to go...
+		switch ( e.keyCode ) {
+		
+		case 37: // left arrow
+		case 65: // 'a'
+				rot = (rot-1) % 16;
+				break;
+		
+		case 39: // right arrow
+		case 68: // 'd'
+				rot = (rot+1) % 16;
+				break;
+		
+		case 38: // up arrow
+		case 87: // 'w'
+				break;
+		
+		case 40: // down arrow
+		case 83: // 's'
+				break;
+		}
+},true);
+
 // canvas setup
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
@@ -10,7 +39,74 @@ var H = 400; //window.innerHeight;
 ctx.canvas.width  = W;
 ctx.canvas.height = H;
 
+var rectWidth = 150;
+var rectHeight = 75;
 
+// translate context to center of canvas
+//ctx.translate(canvas.width / 2, canvas.height / 2);
+
+// rotate 45 degrees clockwise
+//ctx.rotate(Math.PI / 4);
+
+var draw = function (){
+		
+	ctx.fillStyle = "#333333";
+	ctx.fillRect(0, 0, W, H);
+  
+		ctx.save();
+		ctx.translate(canvas.width / 2, canvas.height / 2);
+		ctx.rotate( (Math.PI / 4) * rot);
+		ctx.beginPath();
+		ctx.moveTo(-5, 5);
+		ctx.lineTo(5, 5);
+		ctx.lineTo(0, -15);
+		ctx.lineJoin = 'miter';
+		ctx.closePath();
+		ctx.lineWidth = 1;
+		ctx.fillStyle = 'red';
+		ctx.fill();
+		ctx.strokeStyle = 'black';
+		ctx.stroke();
+		ctx.restore();
+		
+		ctx.save();
+		ctx.translate(canvas.width / 2, canvas.height / 2 + 60);
+		ctx.rotate( (Math.PI / 4) * rot);
+		ctx.beginPath();
+		ctx.moveTo(-5, 5);
+		ctx.lineTo(5, 5);
+		ctx.lineTo(0, -12);
+		ctx.lineTo(5, -2);
+		ctx.lineJoin = 'miter';
+		ctx.closePath();
+		ctx.lineWidth = 1;
+		ctx.fillStyle = 'green';
+		ctx.fill();
+		ctx.strokeStyle = 'black';
+		ctx.stroke();
+		ctx.restore();
+		
+		ctx.font = '40pt monospace';
+		ctx.fillStyle = 'blue';
+		ctx.fillText('Hello World!', 150, 100);
+		ctx.strokeStyle = 'white';
+		ctx.lineWidth = 1;
+		ctx.strokeText('Hello World!', 150, 100);
+};
+/*
+      // quadratic curve
+      context.quadraticCurveTo(230, 200, 250, 120);
+
+      // bezier curve
+      context.bezierCurveTo(290, -40, 300, 200, 400, 150);
+*/
+      // line 2
+//      ctx.lineTo(500, 90);
+
+//ctx.fillStyle = 'blue';
+//ctx.fillRect(rectWidth / -2, rectHeight / -2, rectWidth, rectHeight);
+	  
+/*
 var particles = [];
 for(var i = 0; i < 5; i++)
 {
@@ -84,8 +180,10 @@ var draw = function()
 		if(p.y > H+50) p.y = -50;
 	}
 }
+*/
 
 // animation intervals
 var fps = 30;
 var interval = 1000/fps;
 setInterval(draw, interval);
+
