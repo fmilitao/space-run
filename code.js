@@ -1,32 +1,40 @@
 
 var rot = 0;
+var brake = false;
+
+
+
+// multiple keys must be tracked individually or it will mess up control
+var keys = [];
+var keyControl = function(key,down){ keys[key] = down; };
+window.addEventListener( "keyup", function(e) { keyControl( e.keyCode , false ); }, true);
+window.addEventListener( "keydown", function(e) { keyControl( e.keyCode , true ); }, true);
+
+
+var left = false;
+var right = false;
+var up = false;
+var down = false;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
-window.addEventListener( "keydown", function(e) {
-		//console.log(e);
-		
-		// FIXME: key codes are messy way to go...
-		switch ( e.keyCode ) {
-		
-		case 37: // left arrow
-		case 65: // 'a'
+var checkKeys = function(){
+		left = keys[37] || keys[65]; // left, 'a'
+		right = keys[39] || keys[68]; // right, 'd'
+		up = keys[38] || keys[87]; // up, 'w'
+		down = keys[40] || keys[83] || keys[32]; // down, 's', space
+};
+
+var actions = function(){
+		checkKeys();
+		if ( left ) {
 				rot = (rot-1) % 16;
-				break;
-		
-		case 39: // right arrow
-		case 68: // 'd'
-				rot = (rot+1) % 16;
-				break;
-		
-		case 38: // up arrow
-		case 87: // 'w'
-				break;
-		
-		case 40: // down arrow
-		case 83: // 's'
-				break;
 		}
-},true);
+		if ( right ) {
+				rot = (rot+1) % 16;
+		}
+}
+
+
 
 // canvas setup
 var canvas = document.getElementById("canvas");
@@ -187,3 +195,4 @@ var fps = 30;
 var interval = 1000/fps;
 setInterval(draw, interval);
 
+setInterval(actions, 1000/15); // input is read with this speed
