@@ -1,5 +1,5 @@
 body{
-    background: #333333;
+    background: #222222;
     margin: 0;
     padding: 0;
 }
@@ -7,5 +7,5 @@ body{
 canvas {
     border-style: solid;
     border-color: gray;
-    border-width: 1px;
+    border-width: 2px;
 }
