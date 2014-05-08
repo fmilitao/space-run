@@ -61,6 +61,13 @@ var Ship = function(x,y){
 	var MAX_R = 16;
 	var TWO_PI = 2*Math.PI;
 
+/*	
+    var smoke_i = 0;
+	var smoke = new Array(150);
+    for( i=0;i<smoke.length;++i)
+        smoke[i] = new Smoke();
+*/
+
     this.angle = function(){
 		return TWO_PI/MAX_R*r;
 	};
@@ -78,9 +85,7 @@ var Ship = function(x,y){
 				ctx.lineTo(-5, 4);
 				ctx.lineTo(-15, 0);
 				ctx.closePath();
-//FFD3E820
 				ctx.fillStyle = "rgba(256, 236, 80, "+(Math.random()*0.5+0.5)+")";
-				//ctx.fillStyle = 'yellow';// FIXME 100+random(156)
 				ctx.fill();
             ctx.restore();
         }
@@ -135,6 +140,61 @@ var Ship = function(x,y){
 
 }
 
+// FIXME
+var Smoke = function(){
+	var p = { x:0, y:0 };
+	var v = { x:0, y:0 };
+	var f = 0.99;
+
+var _smoke0 = 0xFF373737;
+var _smoke1 = 0xFF212121;
+
+    var c = Math.random() > 0.5 ? _smoke0 : _smoke1;
+    
+    var t = 0;
+    var t_max = 3;
+    
+    this.done = function() { return t <= 0; }
+    
+    this.draw = function() {
+        if( this.done() )
+			return;
+        
+        
+        var size = 15-12*(t/t_max);
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, size,0, Math.PI*2, false);
+        //ctx.closePath();
+        ctx.fillStyle = 'red';
+		ctx.fill();
+		
+        //FIXME
+        //noStroke();
+        //fill(this.c, 255*(this.t/this.t_max) );
+        //ellipse(this.z.x, this.z.y, size, size);
+    };
+    
+    this.tick = function(){
+        if( this.done() )
+			return;
+        t -= 1/20;
+	    //movement
+	    p.x = p.x + v.x*1/20;
+	    p.y = p.y + v.y*1/20;
+	    //friction
+	    v.x *= f;
+		v.y *= f;
+    };
+    
+    this.deploy = function(x,y,vx,vy) { 
+        p.x = x+(Math.random()*5-2);
+        p.y = y+(Math.random()*5-2);
+        t = t_max;
+        v.x = (Math.random()*10+5)*vx;
+        v.y = (Math.random()*10+5)*vy;
+    };
+}
+
 /*
  * MAIN LOOP
  */
@@ -147,6 +207,10 @@ var draw = function() {
 	ctx.fillRect(0, 0, W, H);
 
 	ship.draw();
+	
+	var tmp = new Smoke();
+	tmp.deploy(200,200,0,0);
+	tmp.draw();
 
 	ctx.save();
 	var h = 12;
@@ -377,4 +441,12 @@ if(p.x > W+50) p.x = -50;
 if(p.y > H+50) p.y = -50;
 }
 }
+
+ctx.font = '40pt monospace';	151		ctx.save();
+121		ctx.fillStyle = 'blue';	152		var h = 12;
+122		ctx.fillText('Hello World!', 150, 100);	153		ctx.font = h+'pt monospace';
+123		ctx.strokeStyle = 'white';	154		ctx.fillStyle = 'white';
+155		//ctx.strokeStyle = 'white';
+124		ctx.lineWidth = 1;	156		ctx.lineWidth = 1;
+125		ctx.strokeText('Hello World!', 150, 100);
 */
