@@ -58,10 +58,24 @@ var actions = function() {
 	}
 }
 
+var stars = new Array(150);
+for(var i=0;i<stars.length;++i){
+	stars[i] = {x : Math.random()*W, y : Math.random()*H, s: Math.random()+1 };
+}
+
 var draw = function() {
 
-	ctx.fillStyle = "#333333";
+	ctx.fillStyle = "#111111";
 	ctx.fillRect(0, 0, W, H);
+
+	for(var i=0;i<stars.length;++i){
+		ctx.beginPath();
+		var p = stars[i];
+		ctx.arc(p.x, p.y, p.s,0, Math.PI*2, false);
+		ctx.fillStyle = '#EDD879';
+		ctx.fill();
+		
+	}
 
 	ship.draw(ctx);
 
