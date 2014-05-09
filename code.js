@@ -48,10 +48,20 @@ var rectHeight = 75;
 
 var actions = function() {
 	checkKeys();
-	if (left) ship.left();
-	if (right) ship.right();
-	if (up) ship.fire();
-	if (down) ship.brake();
+	if(left)
+		ship.left();
+	if(right)
+		ship.right();
+	
+	if(up && down) 
+		ship.powerBrake(true);
+	else{
+		ship.powerBrake(false);
+		if(up)
+			ship.fire();
+		if(down)
+			ship.brake();
+	}
 }
 
 var Ship = function(x,y){
@@ -78,7 +88,7 @@ var Ship = function(x,y){
 		ctx.rotate( this.angle() );
 		
 		//if engines on
-        if( up ){
+        if( up && !down ){
         	ctx.save();
 	        	ctx.beginPath();
 				ctx.moveTo(-5, -4);
@@ -101,7 +111,11 @@ var Ship = function(x,y){
 		ctx.lineWidth = 2;
 		ctx.fillStyle = 'green';
 		ctx.fill();
-		ctx.strokeStyle = 'white';
+		
+		if( up && down )
+			ctx.strokeStyle = 'yellow';
+		else
+			ctx.strokeStyle = 'white';
 		ctx.stroke();
 		
 		ctx.restore();
@@ -121,6 +135,26 @@ var Ship = function(x,y){
         v.y *= 0.8;
     };
     
+    var power = null;
+    this.powerBrake = function(isOn){
+    	if( !isOn && power !== null ){
+    		// apply boost
+    		v.x = power*Math.cos( this.angle() );
+        	v.y = power*Math.sin( this.angle() );
+        	power = null;
+        	return;
+    	}
+    	
+    	if( isOn ){
+	    	if( power === null ){
+	    		// power brake speed to remember
+	    		power = Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
+	    	}
+	        v.x *= 0.8;
+	        v.y *= 0.8;
+       	}
+    };
+    
     this.tick = function(){
         p.x = p.x + v.x*1/20;
 	    p.y = p.y + v.y*1/20;
@@ -135,7 +169,7 @@ var Ship = function(x,y){
     }
     
     this.toString = function(){
-    	return 'x: '+p.x+', y: '+p.y;
+    	return 'x: '+p.x.toFixed(2)+', y: '+p.y.toFixed(2);
     }
 
 }
@@ -207,11 +241,11 @@ var draw = function() {
 	ctx.fillRect(0, 0, W, H);
 
 	ship.draw();
-	
+	/*
 	var tmp = new Smoke();
 	tmp.deploy(200,200,0,0);
 	tmp.draw();
-
+*/
 	ctx.save();
 	var h = 12;
 	ctx.font = h+'pt monospace';
