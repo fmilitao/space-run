@@ -38,7 +38,7 @@ ctx.canvas.height = H;
  * MAIN LOOP
  */
 
-var ship = new Ship(W/2,H/2);
+var ship = new Ship( W/2, H/2 );
 
 var actions = function() {
 	checkKeys();

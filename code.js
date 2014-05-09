@@ -113,10 +113,10 @@ var Ship = function(x,y){
     
     	if( p.y < 0 ) p.y = H;
     	if( p.y > H ) p.y = 0;
-    }
+    };
     
     this.toString = function(){
     	return 'x: '+p.x.toFixed(2)+', y: '+p.y.toFixed(2);
-    }
+    };
 
-}
+};
