@@ -44,6 +44,8 @@ var Ship = function(x,y){
 				ctx.fillStyle = "rgba(256, 236, 80, "+(Math.random()*0.5+0.5)+")";
 				ctx.fill();
             ctx.restore();
+            
+            actors.push( new Smoke(p.x,p.y,Math.cos(this.angle()),Math.sin(this.angle())) );
         }
 
 		ctx.beginPath();
@@ -146,11 +148,13 @@ var Star = function(x,y,s){
 	}
 	
 	this.draw = function(ctx){
+		ctx.save(); //TODO: why is this needed?
 		ctx.beginPath();
 		ctx.arc(x, y, s,0, TWO_PI, false);
 		ctx.fillStyle = '#EDD879';
 		ctx.fill();
-		ctx.closePath();
+	//	ctx.closePath();
+		ctx.restore();
 	}
 	
 	this.dead = function(){
@@ -177,12 +181,10 @@ var Smoke = function(x,y,vx,vy){
         var size = 15-12*(t/t_max);
         
         ctx.beginPath();
-//        fill(this.c, 255*(this.t/this.t_max) );
-//        ellipse(this.z.x, this.z.y, size, size);
 		ctx.arc(p.x, p.y, size,0, TWO_PI, false);
 		ctx.fillStyle = c+(t/t_max)+')';
 		ctx.fill();
-		ctx.closePath();
+//		ctx.closePath();
     };
     
     this.tick = function(){

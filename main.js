@@ -93,7 +93,7 @@ actors.push( ship );
 var draw = function() {
 
 	// clean old frame
-	ctx.fillStyle = "#111111";
+	ctx.fillStyle = "#222244";
 	ctx.fillRect(0, 0, W, H);
 
 	for( var i=0; i<actors.length; ++i ){
@@ -124,13 +124,14 @@ var interval = 1000 / fps;
 setInterval(function(){
 	draw();
 	
-	var tmp = [];
-	for( var i=0; i<actors.length; ++i ){
-		actors[i].tick(H,W);
-		if( !actors[i].dead() )
-			tmp.push( actors[i] );
+	var tmp = actors;
+	actors = [];
+	for( var i=0; i<tmp.length; ++i ){
+		tmp[i].tick(H,W);
+		if( !tmp[i].dead() )
+			actors.push( tmp[i] );
 	}
-	actors = tmp;
+	
 }, interval);
 
 // input is read with this speed
