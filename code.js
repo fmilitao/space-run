@@ -1,4 +1,6 @@
 
+var TWO_PI = 2*Math.PI;
+
 /*
  * SHIP
  */
@@ -8,7 +10,6 @@ var Ship = function(x,y){
 	var v = { x:0, y:0 };
 	var r = 0;
 	var MAX_R = 16;
-	var TWO_PI = 2*Math.PI;
 
     this.angle = function(){
 		return TWO_PI/MAX_R*r;
@@ -24,14 +25,14 @@ var Ship = function(x,y){
         if( up && !down ){
         	ctx.save();
 	        	ctx.beginPath();
+				/*
 	        	var size = (4+Math.random());
 	        	var circ = Math.PI*2;
 	        	ctx.arc(-4, 0, size, 0, circ, false);
-				/*
+				*/
 				ctx.moveTo(-5, -4);
 				ctx.lineTo(-5, 4);
 				ctx.lineTo(-15, 0);
-				*/
 				ctx.closePath();
 				/*
 				var gradient = ctx.createRadialGradient(-4,0,0,-4,0,size);
@@ -114,9 +115,11 @@ var Ship = function(x,y){
     };
     
     
-    this.tick = function(){
+    this.tick = function(H,W){
         p.x = p.x + v.x*1/20;
 	    p.y = p.y + v.y*1/20;
+	    
+	    this.bounds(H,W);
     };
     
     this.bounds = function(H,W){
@@ -131,4 +134,63 @@ var Ship = function(x,y){
     	return 'x: '+p.x.toFixed(2)+', y: '+p.y.toFixed(2);
     };
 
+	this.dead = function(){
+		return false;
+	}
 };
+
+var Star = function(x,y,s){
+	
+	this.tick = function(){
+		//
+	}
+	
+	this.draw = function(ctx){
+		ctx.beginPath();
+		ctx.arc(x, y, s,0, TWO_PI, false);
+		ctx.fillStyle = '#EDD879';
+		ctx.fill();
+		ctx.closePath();
+	}
+	
+	this.dead = function(){
+		return false;
+	}
+};
+
+var _smoke0 = 'rgba(37,37,37,';
+var _smoke1 = 'rgba(21,21,21,';
+
+var Smoke = function(x,y,vx,vy){
+	var p = { x: x+((Math.random()*5)-2), y: y+((Math.random()*5)-2) };
+	var v = { x: (Math.random()*10+5)*vx, y: (Math.random()*10+5)*vy };
+    var f = 0.99;
+    var c = Math.random() > 0.5 ? _smoke0 : _smoke1;
+	var t_max = 5;
+    var t = t_max;
+    
+    this.dead = function() {
+		return t <= 0;
+	}
+    
+    this.draw = function(ctx) {
+        var size = 15-12*(t/t_max);
+        
+        ctx.beginPath();
+//        fill(this.c, 255*(this.t/this.t_max) );
+//        ellipse(this.z.x, this.z.y, size, size);
+		ctx.arc(p.x, p.y, size,0, TWO_PI, false);
+		ctx.fillStyle = c+(t/t_max)+')';
+		ctx.fill();
+		ctx.closePath();
+    };
+    
+    this.tick = function(){
+        t -= 1/20;
+        p.x = p.x + v.x*1/20;
+	    p.y = p.y + v.y*1/20;
+	    v.x *= f;
+	    v.y *= f;
+    };
+
+}

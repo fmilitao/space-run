@@ -83,40 +83,36 @@ var actions = function() {
 	}
 }
 
-var stars = new Array(150);
-for(var i=0;i<stars.length;++i){
-	stars[i] = {x : Math.random()*W, y : Math.random()*H, s: Math.random()+1 };
+var actors = [];
+
+for( var i=0 ; i<150 ; ++i ){
+	actors.push( new Star( Math.random()*W, Math.random()*H, Math.random()+1 ) );
 }
+actors.push( ship );
 
 var draw = function() {
 
+	// clean old frame
 	ctx.fillStyle = "#111111";
 	ctx.fillRect(0, 0, W, H);
 
-	for(var i=0;i<stars.length;++i){
-		ctx.beginPath();
-		var p = stars[i];
-		ctx.arc(p.x, p.y, p.s,0, Math.PI*2, false);
-		ctx.fillStyle = '#EDD879';
-		ctx.fill();
-		
-	}
-
-	ship.draw(ctx);
+	for( var i=0; i<actors.length; ++i ){
+		actors[i].draw(ctx);
+	} 
 
     // HUD elements
 	ctx.save();
-	var h = 12;
-	ctx.font = h+'pt monospace';
-	ctx.fillStyle = 'white';
-	//ctx.strokeStyle = 'white';
-	ctx.lineWidth = 1;
-	
-	//var txt = 'The time is: '+(new Date().toString());
-	var txt = ship.toString();
-	//var m = ctx.measureText(txt);
-	ctx.fillText(txt, 2, h+2);
-	//ctx.strokeText(txt, 2, h);
+		var h = 12;
+		ctx.font = h+'pt monospace';
+		ctx.fillStyle = 'white';
+		//ctx.strokeStyle = 'white';
+		ctx.lineWidth = 1;
+		
+		//var txt = 'The time is: '+(new Date().toString());
+		var txt = ship.toString();
+		//var m = ctx.measureText(txt);
+		ctx.fillText(txt, 2, h+2);
+		//ctx.strokeText(txt, 2, h);
 	ctx.restore();
 
 };
@@ -127,8 +123,14 @@ var interval = 1000 / fps;
 
 setInterval(function(){
 	draw();
-	ship.tick();
-	ship.bounds(H,W);
+	
+	var tmp = [];
+	for( var i=0; i<actors.length; ++i ){
+		actors[i].tick(H,W);
+		if( !actors[i].dead() )
+			tmp.push( actors[i] );
+	}
+	actors = tmp;
 }, interval);
 
 // input is read with this speed
