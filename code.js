@@ -24,10 +24,22 @@ var Ship = function(x,y){
         if( up && !down ){
         	ctx.save();
 	        	ctx.beginPath();
+	        	var size = (4+Math.random());
+	        	var circ = Math.PI*2;
+	        	ctx.arc(-4, 0, size, 0, circ, false);
+				/*
 				ctx.moveTo(-5, -4);
 				ctx.lineTo(-5, 4);
 				ctx.lineTo(-15, 0);
+				*/
 				ctx.closePath();
+				/*
+				var gradient = ctx.createRadialGradient(-4,0,0,-4,0,size);
+				gradient.addColorStop(0.4, "blue");
+				//gradient.addColorStop(0.4, p.color);
+				gradient.addColorStop(1, "white");
+				ctx.fillStyle = gradient;
+				*/
 				ctx.fillStyle = "rgba(256, 236, 80, "+(Math.random()*0.5+0.5)+")";
 				ctx.fill();
             ctx.restore();

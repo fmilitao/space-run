@@ -28,8 +28,33 @@ var checkKeys = function() {
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-var W = 800; //window.innerWidth-4;
+
+var W = window.innerWidth-4;
 var H = window.innerHeight-4;
+
+// override default canvas size
+var parameters = document.URL.split('?');
+if( parameters.length > 1 ){
+	parameters = parameters[1].split('&');
+	for( var i=0;i<parameters.length;++i ){
+    	var tmp = parameters[i].split('=');
+    	if( tmp.length > 1 ){
+    		var option = tmp[0];
+    		var value = tmp[1];
+    		switch( option ){
+    			case 'w':
+    				W = parseInt(value);
+    				break;
+    			case 'h':
+    				H = parseInt(value);
+    				break;
+    			default: // not other options for now.
+    				break;
+    		}
+    	}
+	}
+}
+
 
 ctx.canvas.width = W;
 ctx.canvas.height = H;
