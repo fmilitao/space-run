@@ -1,6 +1,14 @@
 
 var TWO_PI = 2*Math.PI;
 
+var fix = function(str,length){
+	var tmp = str;
+	while (tmp.length < length) {
+    	tmp = ' ' + tmp;
+	}
+	return tmp;
+};
+
 /*
  * Shapes
  */
@@ -31,12 +39,25 @@ var drawTriangle = function(ctx){
 
 var Ship = function(x,y){
 	var MAX_R = 32;
+	var MAX_POWER = 150;
+	var MAX_SPEED = 250;
+	var FIRE = 5;
+	var BRAKE = 0.8;
 
 	var p = { x:x, y:y };
 	var v = { x:0, y:0 };
+	
 	var r = 0;
 
-//XXX remove this.angle
+	this.getVel = function(){
+		return Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
+	};
+	
+	this.setVel = function(p){
+		v.x = p*Math.cos( this.angle() );
+        v.y = p*Math.sin( this.angle() );
+   	};
+    
     this.angle = function(){
 		return TWO_PI/MAX_R*r;
 	};
@@ -58,7 +79,7 @@ var Ship = function(x,y){
 				*/
 				ctx.moveTo(-5, -4);
 				ctx.lineTo(-5, 4);
-				ctx.lineTo(-15, 0);
+				ctx.lineTo(-14-(Math.random()*2), 0);
 				ctx.closePath();
 				/*
 				var gradient = ctx.createRadialGradient(-4,0,0,-4,0,size);
@@ -71,8 +92,8 @@ var Ship = function(x,y){
 				ctx.fill();
             ctx.restore();
             
-            var xx = p.x-(Math.cos(this.angle())*15);
-            var yy = p.y-(Math.sin(this.angle())*15);
+            var xx = p.x-(Math.cos(this.angle())*17);
+            var yy = p.y-(Math.sin(this.angle())*17);
             actors.push( new Smoke(xx,yy,Math.cos(this.angle()),Math.sin(this.angle())) );
         }
 
@@ -106,13 +127,19 @@ var Ship = function(x,y){
     this.right = function() { r = (r+1) % MAX_R; };
 
     this.fire = function() {
-        v.x += 15*Math.cos( this.angle() );
-        v.y += 15*Math.sin( this.angle() );
+        v.x += FIRE*Math.cos( this.angle() );
+        v.y += FIRE*Math.sin( this.angle() );
+        
+        // when reaches limit starts to friction
+        if( this.getVel() > MAX_SPEED ){
+        	v.x *= 0.95;
+        	v.y *= 0.95;
+        }
     };
     
     this.brake = function(){
-        v.x *= 0.8;
-        v.y *= 0.8;
+        v.x *= BRAKE;
+        v.y *= BRAKE;
     };
     
     
@@ -120,18 +147,16 @@ var Ship = function(x,y){
     this.powerBrake = function(isOn){
     	if( !isOn && power !== null ){
     		// apply boost
-    		v.x = power*Math.cos( this.angle() );
-        	v.y = power*Math.sin( this.angle() );
+        	this.setVel( power );
         	power = null;
-        	
         	return;
     	}
     	
     	if( isOn ){
 	    	if( power === null ){
 	    		// power brake speed to remember
-	    		power = getVel(); //Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
-	    		power = Math.min( power, 200 );
+	    		power = this.getVel();
+	    		power = Math.min( power, MAX_POWER );
 	    	}
 	        v.x *= 0.8;
 	        v.y *= 0.8;
@@ -154,22 +179,10 @@ var Ship = function(x,y){
     	if( p.y > H ) p.y = 0;
     };
     
-	var fix = function(str,length){
-    	var tmp = str;
-    	while (tmp.length < length) {
-        	tmp = ' ' + tmp;
-    	}
-    	return tmp;
-	}
-
-	var getVel = function(){
-		return Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
-	}
-    
     this.toString = function(){
     	var xx = (p.x).toFixed(1);
     	var yy = (p.y).toFixed(1);
-    	var vv = getVel().toFixed(1);
+    	var vv = this.getVel().toFixed(1);
 		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
     	return 'pos=('+fix(xx,6)+', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
     };
@@ -179,28 +192,28 @@ var Ship = function(x,y){
 	}
 };
 
-var _smoke0 = 'rgba(37,37,37,';
-var _smoke1 = 'rgba(21,21,21,';
+var SMOKE_COLOR0 = 'rgba(37,37,37,';
+var SMOKE_COLOR1 = 'rgba(21,21,21,';
+var T_MAX = 5;
 
 var Smoke = function(x,y,vx,vy){
 	var p = { x: x+((Math.random()*5)-2), y: y+((Math.random()*5)-2) };
 	var v = { x: (Math.random()*10+5)*vx, y: (Math.random()*10+5)*vy };
     var f = 0.99;
-    var c = Math.random() > 0.5 ? _smoke0 : _smoke1;
-	var t_max = 5;
-    var t = t_max;
+    var c = Math.random() > 0.5 ? SMOKE_COLOR0 : SMOKE_COLOR1;
+    var t = T_MAX;
     
     this.dead = function() {
 		return t <= 0;
 	}
     
     this.draw = function(ctx) {
-        var size = 15-12*(t/t_max);
+        var size = 15-12*(t/T_MAX);
         
         ctx.save();
 	        ctx.beginPath();
 			ctx.arc(p.x, p.y, size,0, TWO_PI, false);
-			ctx.fillStyle = c+(t/t_max)+')';
+			ctx.fillStyle = c+(t/T_MAX)+')';
 			ctx.fill();
 			ctx.closePath();
 		ctx.restore();
@@ -214,4 +227,4 @@ var Smoke = function(x,y,vx,vy){
 	    v.y *= f;
     };
 
-}
+};
