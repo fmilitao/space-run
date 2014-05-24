@@ -28,7 +28,6 @@ var checkKeys = function() {
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
-
 var W = window.innerWidth-4;
 var H = window.innerHeight-4;
 
@@ -48,13 +47,12 @@ if( parameters.length > 1 ){
     			case 'h':
     				H = parseInt(value);
     				break;
-    			default: // not other options for now.
+    			default: // no other options
     				break;
     		}
     	}
 	}
 }
-
 
 ctx.canvas.width = W;
 ctx.canvas.height = H;
@@ -85,16 +83,35 @@ var actions = function() {
 
 var actors = [];
 
-for( var i=0 ; i<150 ; ++i ){
-	actors.push( new Star( Math.random()*W, Math.random()*H, Math.random()+1 ) );
-}
 actors.push( ship );
+
+var background = null;
+var clearBackground = function(ctx){
+	if( background !== null ){
+		ctx.putImageData(background,0,0);
+	}else{
+		// draws background and stores it for later
+		ctx.fillStyle = "#222244";
+		ctx.fillRect(0, 0, W, H);
+		for( var i=0 ; i<150 ; ++i ){
+			var x = Math.random()*W;
+			var y = Math.random()*H;
+			var s = Math.random()+1 
+			
+			ctx.save();
+				ctx.beginPath();
+				ctx.arc(x, y, s,0, TWO_PI, false);
+				ctx.fillStyle = '#EDD879';
+				ctx.fill();
+			ctx.restore();
+		}
+		background = ctx.getImageData(0,0,W,H);
+	}
+}
 
 var draw = function() {
 
-	// clean old frame
-	ctx.fillStyle = "#222244";
-	ctx.fillRect(0, 0, W, H);
+	clearBackground(ctx);
 
 	for( var i=0; i<actors.length; ++i ){
 		actors[i].draw(ctx);
@@ -109,14 +126,10 @@ var draw = function() {
 
 		ctx.font = h+'pt testFont';
 		ctx.fillStyle = 'white';
-		//ctx.strokeStyle = 'white';
 		ctx.lineWidth = 1;
 		
-		//var txt = 'The time is: '+(new Date().toString());
 		var txt = 'Player One: '+ship.toString();
-		//var m = ctx.measureText(txt);
 		ctx.fillText(txt, 2, h*1.5+2);
-		//ctx.strokeText(txt, 2, h);
 	ctx.restore();
 
 };
@@ -126,6 +139,8 @@ var fps = 30;
 var interval = 1000 / fps;
 
 setInterval(function(){
+	actions();
+	
 	draw();
 	
 	var tmp = actors;
@@ -138,5 +153,3 @@ setInterval(function(){
 	
 }, interval);
 
-// input is read with this speed
-setInterval(actions, 1000 / 15);

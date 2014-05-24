@@ -2,15 +2,41 @@
 var TWO_PI = 2*Math.PI;
 
 /*
- * SHIP
+ * Shapes
+ */
+
+var drawMissile = function(ctx){
+	ctx.beginPath();
+		ctx.moveTo(-4, -4);
+		ctx.lineTo(-4, 4);
+		ctx.lineTo(8, 4);
+		ctx.lineTo(12, 0);
+		ctx.lineTo(8, -4);
+		ctx.lineJoin = 'miter';
+	ctx.closePath();   	
+}
+
+var drawTriangle = function(ctx){
+	ctx.beginPath();
+		ctx.moveTo(-5, -5);
+		ctx.lineTo(-5, 5);
+		ctx.lineTo(15, 0);
+		ctx.lineJoin = 'miter';
+	ctx.closePath();	
+}
+
+/*
+ * Actors
  */
 
 var Ship = function(x,y){
+	var MAX_R = 32;
+
 	var p = { x:x, y:y };
 	var v = { x:0, y:0 };
 	var r = 0;
-	var MAX_R = 16;
 
+//XXX remove this.angle
     this.angle = function(){
 		return TWO_PI/MAX_R*r;
 	};
@@ -50,36 +76,25 @@ var Ship = function(x,y){
             actors.push( new Smoke(xx,yy,Math.cos(this.angle()),Math.sin(this.angle())) );
         }
 
-		ctx.beginPath();
-			ctx.moveTo(-4, -4);
-			ctx.lineTo(-4, 4);
-			ctx.lineTo(8, 4);
-			ctx.lineTo(12, 0);
-			ctx.lineTo(8, -4);
-			ctx.lineJoin = 'miter';
-		ctx.closePath();        
-		
-		/*
-		ctx.beginPath();
-			ctx.moveTo(-5, -5);
-			ctx.lineTo(-5, 5);
-			ctx.lineTo(15, 0);
-			ctx.lineJoin = 'miter';
-		ctx.closePath();
-		*/
+		drawTriangle(ctx);     
 		
 		ctx.fillStyle = '#ff2020';
 		ctx.fill();
 		
 		if( up && down ){
 			ctx.lineWidth = 4;
-					ctx.lineJoin = 'round';
-			//ctx.strokeStyle = 'yellow';
+			ctx.lineJoin = 'round';
 			ctx.strokeStyle = "rgba(80, 236, 256, "+(Math.random()*0.6+0.4)+")";
 		}
 		else{
-			ctx.lineWidth = 2;
-			ctx.strokeStyle = '#ffbbbb';
+			if( down ){
+				ctx.lineWidth = 3;
+				ctx.strokeStyle = 'rgba(255,20,20,0.2)';
+			}
+			else {
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = '#ffbbbb';
+			}
 		}
 		ctx.stroke();
 		
@@ -164,27 +179,6 @@ var Ship = function(x,y){
 	}
 };
 
-var Star = function(x,y,s){
-//FIXME paint background once and then just restore it, no need for these stars, etc.	
-	this.tick = function(){
-		//
-	}
-	
-	this.draw = function(ctx){
-		ctx.save(); //TODO: why is this needed?
-		ctx.beginPath();
-		ctx.arc(x, y, s,0, TWO_PI, false);
-		ctx.fillStyle = '#EDD879';
-		ctx.fill();
-	//	ctx.closePath();
-		ctx.restore();
-	}
-	
-	this.dead = function(){
-		return false;
-	}
-};
-
 var _smoke0 = 'rgba(37,37,37,';
 var _smoke1 = 'rgba(21,21,21,';
 
@@ -203,11 +197,13 @@ var Smoke = function(x,y,vx,vy){
     this.draw = function(ctx) {
         var size = 15-12*(t/t_max);
         
-        ctx.beginPath();
-		ctx.arc(p.x, p.y, size,0, TWO_PI, false);
-		ctx.fillStyle = c+(t/t_max)+')';
-		ctx.fill();
-//		ctx.closePath();
+        ctx.save();
+	        ctx.beginPath();
+			ctx.arc(p.x, p.y, size,0, TWO_PI, false);
+			ctx.fillStyle = c+(t/t_max)+')';
+			ctx.fill();
+			ctx.closePath();
+		ctx.restore();
     };
     
     this.tick = function(){
