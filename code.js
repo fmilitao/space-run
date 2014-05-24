@@ -68,14 +68,19 @@ var Ship = function(x,y){
 		ctx.closePath();
 		*/
 		
-		ctx.lineWidth = 2;
 		ctx.fillStyle = '#ff2020';
 		ctx.fill();
 		
-		if( up && down )
-			ctx.strokeStyle = 'yellow';
-		else
+		if( up && down ){
+			ctx.lineWidth = 4;
+					ctx.lineJoin = 'round';
+			//ctx.strokeStyle = 'yellow';
+			ctx.strokeStyle = "rgba(80, 236, 256, "+(Math.random()*0.6+0.4)+")";
+		}
+		else{
+			ctx.lineWidth = 2;
 			ctx.strokeStyle = '#ffbbbb';
+		}
 		ctx.stroke();
 		
 		ctx.restore();
@@ -134,8 +139,23 @@ var Ship = function(x,y){
     	if( p.y > H ) p.y = 0;
     };
     
+	var fix = function(str,length){
+    	var tmp = str;
+    	while (tmp.length < length) {
+        	tmp = ' ' + tmp;
+    	}
+    	return tmp;
+	}
+
+    
     this.toString = function(){
-    	return 'x: '+p.x.toFixed(2)+', y: '+p.y.toFixed(2);
+    	var xx = (p.x).toFixed(1);
+    	var yy = (p.y).toFixed(1);
+    	var vv = Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) ).toFixed(1);
+		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
+//FIXME fix length of coordinates?
+		
+    	return '('+fix(xx,6)+', '+fix(yy,6)+') '+fix(vv,6)+' '+pp;
     };
 
 	this.dead = function(){

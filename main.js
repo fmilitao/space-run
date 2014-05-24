@@ -113,7 +113,7 @@ var draw = function() {
 		ctx.lineWidth = 1;
 		
 		//var txt = 'The time is: '+(new Date().toString());
-		var txt = 'Player One ('+ship.toString()+')';
+		var txt = 'Player One '+ship.toString();
 		//var m = ctx.measureText(txt);
 		ctx.fillText(txt, 2, h*1.5+2);
 		//ctx.strokeText(txt, 2, h);
