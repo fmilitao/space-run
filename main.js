@@ -102,16 +102,20 @@ var draw = function() {
 
     // HUD elements
 	ctx.save();
-		var h = 12;
-		ctx.font = h+'pt monospace';
+		var h = 8;
+
+		ctx.fillStyle = "rgba(0,0,0,0.3)";
+		ctx.fillRect(0, 0, W, h*1.5+4);
+
+		ctx.font = h+'pt testFont';
 		ctx.fillStyle = 'white';
 		//ctx.strokeStyle = 'white';
 		ctx.lineWidth = 1;
 		
 		//var txt = 'The time is: '+(new Date().toString());
-		var txt = ship.toString();
+		var txt = 'Player One ('+ship.toString()+')';
 		//var m = ctx.measureText(txt);
-		ctx.fillText(txt, 2, h+2);
+		ctx.fillText(txt, 2, h*1.5+2);
 		//ctx.strokeText(txt, 2, h);
 	ctx.restore();
 

@@ -1,3 +1,9 @@
+@font-face
+{
+font-family: testFont;
+src: url('font/PressStart2P.ttf');
+}
+
 body{
     background: #222222;
     margin: 0;

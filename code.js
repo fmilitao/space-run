@@ -45,7 +45,9 @@ var Ship = function(x,y){
 				ctx.fill();
             ctx.restore();
             
-            actors.push( new Smoke(p.x,p.y,Math.cos(this.angle()),Math.sin(this.angle())) );
+            var xx = p.x-(Math.cos(this.angle())*15);
+            var yy = p.y-(Math.sin(this.angle())*15);
+            actors.push( new Smoke(xx,yy,Math.cos(this.angle()),Math.sin(this.angle())) );
         }
 
 		ctx.beginPath();
