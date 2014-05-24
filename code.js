@@ -115,7 +115,7 @@ var Ship = function(x,y){
     	if( isOn ){
 	    	if( power === null ){
 	    		// power brake speed to remember
-	    		power = Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
+	    		power = getVel(); //Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
 	    		power = Math.min( power, 200 );
 	    	}
 	        v.x *= 0.8;
@@ -147,15 +147,16 @@ var Ship = function(x,y){
     	return tmp;
 	}
 
+	var getVel = function(){
+		return Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
+	}
     
     this.toString = function(){
     	var xx = (p.x).toFixed(1);
     	var yy = (p.y).toFixed(1);
-    	var vv = Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) ).toFixed(1);
+    	var vv = getVel().toFixed(1);
 		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
-//FIXME fix length of coordinates?
-		
-    	return '('+fix(xx,6)+', '+fix(yy,6)+') '+fix(vv,6)+' '+pp;
+    	return 'pos=('+fix(xx,6)+', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
     };
 
 	this.dead = function(){
@@ -164,7 +165,7 @@ var Ship = function(x,y){
 };
 
 var Star = function(x,y,s){
-	
+//FIXME paint background once and then just restore it, no need for these stars, etc.	
 	this.tick = function(){
 		//
 	}
