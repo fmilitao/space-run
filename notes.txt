@@ -1,3 +1,17 @@
+				/*
+	        	var size = (4+Math.random());
+	        	var circ = Math.PI*2;
+	        	ctx.arc(-4, 0, size, 0, circ, false);
+				*/
+
+				/*
+				var gradient = ctx.createRadialGradient(-4,0,0,-4,0,size);
+				gradient.addColorStop(0.4, "blue");
+				//gradient.addColorStop(0.4, p.color);
+				gradient.addColorStop(1, "white");
+				ctx.fillStyle = gradient;
+				*/
+
 /*
 		var b = Math.abs( (pts_i-1) % pts.length );
 		var max = pts.length;
