@@ -282,7 +282,7 @@ var CheckPoint = function(){
     };
     
     this.tick = function(time){
-//XXX COLLISION!
+//FIXME: collision code is botched...
 		if( this.dead() )
 			return;
 			
@@ -366,17 +366,17 @@ var Gue = function(x,y){
 
 var Spark = function(x,y,angle){
 	var p = { x: x+((Math.random()*5)-2), y: y+((Math.random()*5)-2) };
-	var v = { x: Math.cos(angle)*10, y: Math.sin(angle)*10 };
+	var v = { x: Math.cos(angle)*12, y: Math.sin(angle)*12 };
     var f = 0.99;
     //var c = 'green';
-    var t = 2;
+    var t = 3;
     
     this.dead = function() {
 		return t <= 0;
 	}
     
     this.draw = function(ctx) {
-        var size = 15-12*(t/2);
+        var df = (t/3);
         
         ctx.save();
 	        ctx.beginPath();
@@ -385,7 +385,7 @@ var Spark = function(x,y,angle){
 
 			ctx.lineWidth = 3;
 			ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-			ctx.fillStyle = 'yellow';
+			ctx.fillStyle = 'rgba(255,255,0,'+df+')';
 			ctx.fill();
 			ctx.stroke();
 		ctx.restore();
