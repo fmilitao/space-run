@@ -308,7 +308,7 @@ var Gue = function(x,y){
 	var v = { x: Math.cos(angle)*15, y: Math.sin(angle)*15 };
 	
     var t = GUE_MAX;
-    var s = Math.random()*20+10;
+    var s = Random()*20+10;
     
     this.dead = function() {
 		return t <= 0;
