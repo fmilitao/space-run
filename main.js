@@ -139,6 +139,7 @@ var draw = function() {
 // animation intervals
 var fps = 30;
 var interval = 1000 / fps;
+var time = 1/20;
 
 setInterval(function(){
 	actions();
@@ -146,9 +147,14 @@ setInterval(function(){
 	draw();
 	
 	var tmp = actors;
-	actors = [];
 	for( var i=0; i<tmp.length; ++i ){
-		tmp[i].tick(H,W);
+		tmp[i].collision( ship );
+	}
+	
+	actors = [];
+	
+	for( var i=0; i<tmp.length; ++i ){
+		tmp[i].tick(time,H,W);
 		if( !tmp[i].dead() )
 			actors.push( tmp[i] );
 	}
