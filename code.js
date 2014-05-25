@@ -34,6 +34,23 @@ var drawTriangle = function(ctx){
 }
 
 /*
+var drawViper = function(ctx){	 	
+	ctx.beginPath();
+		ctx.lineJoin = 'miter';
+		ctx.moveTo(-5, 5);
+		ctx.lineTo( 0, 5);
+		ctx.lineTo(10, 0);
+		ctx.lineTo( 0, -5);
+		ctx.lineTo(-5, -5);
+		ctx.lineTo(-5, 5);
+
+		ctx.moveTo(-5, -15);
+		ctx.lineTo(-5, 15);
+		ctx.lineTo(25, 0);
+	ctx.closePath();  
+} */
+
+/*
  * Actors
  */
 
@@ -95,6 +112,13 @@ var Ship = function(x,y){
             var xx = p.x-(Math.cos(this.angle())*17);
             var yy = p.y-(Math.sin(this.angle())*17);
             actors.push( new Smoke(xx,yy,Math.cos(this.angle()),Math.sin(this.angle())) );
+
+/*
+			if( this.getVel() > 50 ){
+				actors.push( new Spark(xx,yy,this.angle()-Math.PI) );	
+			}
+*/
+
         }
 
 		drawTriangle(ctx);     
@@ -213,7 +237,7 @@ var Smoke = function(x,y,vx,vy){
         ctx.save();
 	        ctx.beginPath();
 			ctx.arc(p.x, p.y, size,0, TWO_PI, false);
-			ctx.fillStyle = c+(t/T_MAX)+')';
+			ctx.fillStyle = c+(t/T_MAX+0.1)+')';
 			ctx.fill();
 			ctx.closePath();
 		ctx.restore();
@@ -228,3 +252,129 @@ var Smoke = function(x,y,vx,vy){
     };
 
 };
+
+var C_MAX = 9.99;
+var CheckPoint = function(){
+	var t = C_MAX;
+	var r = 30;
+	var x = Math.random()*(W-r)+r;
+	var y = Math.random()*(H-r)+r;
+	
+	this.dead = function() {
+		return t <= 0;
+	}
+	
+	this.draw = function(ctx) {
+        ctx.save();
+	        ctx.beginPath();
+			ctx.arc(x, y, r, 0, TWO_PI, false);
+
+			ctx.lineWidth = 3*(1-(t/C_MAX))+1;
+			ctx.strokeStyle = 'rgba(255,0,0,'+(1-(t/C_MAX))+')';
+			ctx.fillStyle = 'rgba(255,0,0,'+( t/C_MAX)+')';
+			ctx.fill();
+			ctx.stroke();
+			
+			ctx.fillStyle = 'white';
+			var text = t.toFixed(1);
+			ctx.fillText( text, 
+					x-ctx.measureText(text).width/2,
+					y+(FONT_H*1.5)/2 );
+		ctx.restore();
+		
+
+    };
+    
+    this.tick = function(){
+//XXX COLLISION!
+        t -= 1/20;
+        
+        if( this.dead() ){
+        	actors.push( new CheckPoint() );
+        	
+        	var gues = Math.random()*4+4;
+        	while( gues-- > 0 )
+        		actors.push( new Gue(x,y) );
+        }
+    };
+    
+};
+
+var G_MAX = 30;
+var Gue = function(x,y){
+	var angle = TWO_PI*Math.random();
+	var p = { x: x, y: y };
+	var v = { x: Math.cos(angle)*15, y: Math.sin(angle)*15 };
+    var f = 0.95;
+    var c = 'green';
+    var t = G_MAX;
+    var s = Math.random()*20+10;
+    
+    this.dead = function() {
+		return t <= 0;
+	}
+    
+    this.draw = function(ctx) {
+        var size = s-10*(t/G_MAX);
+        
+        ctx.save();
+	        ctx.beginPath();
+			ctx.arc(p.x, p.y, size,0, TWO_PI, false);
+			ctx.fillStyle = 'rgba(0,255,0,'+(t/G_MAX)+')';
+			ctx.fill();
+			ctx.closePath();
+		ctx.restore();
+    };
+    
+    this.tick = function(){
+//XXX COLLISION!
+
+        t -= 1/20;
+        p.x = p.x + v.x*1/20;
+	    p.y = p.y + v.y*1/20;
+	    v.x *= f;
+	    v.y *= f;
+    };
+
+};
+
+/*
+var Spark = function(x,y,angle){
+	var p = { x: x+((Math.random()*5)-2), y: y+((Math.random()*5)-2) };
+	var v = { x: Math.cos(angle)*10, y: Math.sin(angle)*10 };
+    var f = 0.99;
+    //var c = 'green';
+    var t = 0.5;
+    
+    this.dead = function() {
+		return t <= 0;
+	}
+    
+    this.draw = function(ctx) {
+        var size = 15-12*(t/T_MAX);
+        
+        ctx.save();
+	        ctx.beginPath();
+			ctx.arc(p.x, p.y, 1,0, TWO_PI, false);
+			ctx.closePath();
+
+			ctx.lineWidth = 3;
+			ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+			ctx.fillStyle = 'yellow';
+			ctx.fill();
+			ctx.stroke();
+		ctx.restore();
+		
+
+    };
+    
+    this.tick = function(){
+        t -= 1/20;
+        p.x = p.x + v.x*1/20;
+	    p.y = p.y + v.y*1/20;
+	    v.x *= f;
+	    v.y *= f;
+    };
+
+};
+*/

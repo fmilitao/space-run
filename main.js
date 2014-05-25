@@ -84,6 +84,7 @@ var actions = function() {
 var actors = [];
 
 actors.push( ship );
+actors.push( new CheckPoint( ) );
 
 var background = null;
 var clearBackground = function(ctx){
@@ -109,6 +110,9 @@ var clearBackground = function(ctx){
 	}
 }
 
+var FONT_H = 8;
+ctx.font = FONT_H+'pt testFont';
+
 var draw = function() {
 
 	clearBackground(ctx);
@@ -119,17 +123,15 @@ var draw = function() {
 
     // HUD elements
 	ctx.save();
-		var h = 8;
 
 		ctx.fillStyle = "rgba(0,0,0,0.3)";
-		ctx.fillRect(0, 0, W, h*1.5+4);
+		ctx.fillRect(0, 0, W, FONT_H*1.5+4);
 
-		ctx.font = h+'pt testFont';
 		ctx.fillStyle = 'white';
 		ctx.lineWidth = 1;
 		
 		var txt = 'Player One: '+ship.toString();
-		ctx.fillText(txt, 2, h*1.5+2);
+		ctx.fillText(txt, 2, FONT_H*1.5+2);
 	ctx.restore();
 
 };
