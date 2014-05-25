@@ -63,6 +63,12 @@ var Ship = function(x,y){
 	var p = { x:x, y:y };
 	var v = { x:0, y:0 };
 	var r = 0;
+	
+	var points = 0;
+	
+	this.points = function(p){
+		points += p;
+	}
 
 	this.getVel = function(){
 		return Math.sqrt( Math.pow(v.x,2) + Math.pow(v.y,2) );
@@ -148,6 +154,10 @@ var Ship = function(x,y){
         v.y *= BRAKE;
     };
     
+    this.slowdown = function(){
+        v.x *= 0.95;
+        v.y *= 0.95;
+    };
     
     this.powerBrake = function(isOn){
     	if( !isOn && power !== null ){
@@ -188,7 +198,7 @@ var Ship = function(x,y){
     	var yy = (p.y).toFixed(1);
     	var vv = this.getVel().toFixed(1);
 		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
-    	return 'pos=('+fix(xx,6)+', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
+    	return 'score='+fix(points.toFixed(1),4)+' pos=('+fix(xx,6)+', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
     };
 
 	this.dead = function(){
@@ -199,7 +209,8 @@ var Ship = function(x,y){
 		
 	};
 	
-	this.radius = 7;
+	this.p = p;
+	this.r = 5;
 };
 
 
@@ -242,8 +253,8 @@ var Smoke = function(x,y,vx,vy){
 
 var CheckPoint = function(){
 	var t = CHECKPOINT_MAX;
-	var x = Random()*(W-CHECKPOINT_R);
-	var y = Random()*(H-CHECKPOINT_R);
+	var x = Random()*(W-CHECKPOINT_R)+CHECKPOINT_R;
+	var y = Random()*(H-CHECKPOINT_R)+CHECKPOINT_R;
 	
 	this.dead = function() {
 		return t <= 0;
@@ -272,6 +283,9 @@ var CheckPoint = function(){
     
     this.tick = function(time){
 //XXX COLLISION!
+		if( this.dead() )
+			return;
+			
         t -= time;
         
         if( this.dead() ){
@@ -284,9 +298,17 @@ var CheckPoint = function(){
     };
     
     this.collision = function(s){
-	//	var d = Math.sqrt( Math.pow((s.x-x),2) + Math.pow((s.y-y),2) );
-//		if( d < r+s.r )
+		var d = Math.sqrt( Math.pow((s.p.x-x),2) + Math.pow((s.p.y-y),2) );
+		if( d <= ((CHECKPOINT_R/2)+s.r) ){
+			s.points( t );
 			// collides
+			var sp = Random()*10+10;
+        	while( sp-- > 0 )
+				actors.push( new Spark(x,y,Random()*TWO_PI) );
+			
+			t = 0;
+			actors.push( new CheckPoint() );
+		}
 	};
     
 };
@@ -299,13 +321,14 @@ var Gue = function(x,y){
 	
     var t = GUE_MAX;
     var s = Random()*20+10;
+    var size = s;
     
     this.dead = function() {
 		return t <= 0;
 	}
     
     this.draw = function(ctx) {
-        var size = s-10*(t/GUE_MAX);
+        size = s-10*(t/GUE_MAX);
         
         ctx.save();
 	        ctx.beginPath();
@@ -325,11 +348,10 @@ var Gue = function(x,y){
     };
     
       this.collision = function(s){
-//XXX COLLISION!
-
-	//	var d = Math.sqrt( Math.pow((s.x-x),2) + Math.pow((s.y-y),2) );
-//		if( d < r+s.r )
-			// collides
+		var d = Math.sqrt( Math.pow((s.p.x-x),2) + Math.pow((s.p.y-y),2) );
+		if( d < (size/2+s.r) ){
+			s.slowdown();
+		}
 	};
 
 };
@@ -341,20 +363,20 @@ var Gue = function(x,y){
 			}
 */
 
-/*
+
 var Spark = function(x,y,angle){
 	var p = { x: x+((Math.random()*5)-2), y: y+((Math.random()*5)-2) };
 	var v = { x: Math.cos(angle)*10, y: Math.sin(angle)*10 };
     var f = 0.99;
     //var c = 'green';
-    var t = 0.5;
+    var t = 2;
     
     this.dead = function() {
 		return t <= 0;
 	}
     
     this.draw = function(ctx) {
-        var size = 15-12*(t/T_MAX);
+        var size = 15-12*(t/2);
         
         ctx.save();
 	        ctx.beginPath();
@@ -371,13 +393,19 @@ var Spark = function(x,y,angle){
 
     };
     
-    this.tick = function(){
-        t -= 1/20;
-        p.x = p.x + v.x*1/20;
-	    p.y = p.y + v.y*1/20;
+    this.tick = function(time){
+        t -= time;
+        p.x = p.x + v.x*time;
+	    p.y = p.y + v.y*time;
 	    v.x *= f;
 	    v.y *= f;
     };
 
+this.collision = function(s){
+//XXX COLLISION!
+
+	//	var d = Math.sqrt( Math.pow((s.x-x),2) + Math.pow((s.y-y),2) );
+//		if( d < r+s.r )
+			// collides
+	};
 };
-*/

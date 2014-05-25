@@ -84,7 +84,10 @@ var actions = function() {
 var actors = [];
 
 actors.push( ship );
-actors.push( new CheckPoint( ) );
+
+var cp = 3;
+while( cp-- > 0 )
+	actors.push( new CheckPoint( ) );
 
 var background = null;
 var clearBackground = function(ctx){
