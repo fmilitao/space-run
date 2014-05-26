@@ -5,13 +5,25 @@
 // multiple keys must be tracked individually or it will mess up control
 var keys = [];
 var keyControl = function(key, down) { keys[key] = down; };
-window.addEventListener("keyup", function(e) { keyControl(e.keyCode, false); }, true);
-window.addEventListener("keydown", function(e) { keyControl(e.keyCode, true); }, true);
+
+var funkU = function(e) { 
+		keyControl(e.keyCode, false);
+		if( e.keyCode == 80 )
+			pause = !pause; 
+	};
+var funkD = function(e) {
+		keyControl(e.keyCode, true);
+	};
+
+window.addEventListener("keyup", funkU, true);
+window.addEventListener("keydown", funkD, true);
 
 var left = false;
 var right = false;
 var up = false;
 var down = false;
+
+var pause = false;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
 var checkKeys = function() {
@@ -116,6 +128,20 @@ var clearBackground = function(ctx){
 var FONT_H = 8;
 ctx.font = FONT_H+'pt testFont';
 
+var drawPaused = function(){
+	clearBackground(ctx);
+	
+	ctx.fillStyle = "rgba(0,0,0,0.5)";
+	ctx.fillRect(0, 0, W, H);
+
+	ctx.fillStyle = 'white';
+	ctx.lineWidth = 1;
+		
+	var txt = "Game Paused. Press 'p' to continue.";
+	ctx.fillText(txt, (W/2)-(ctx.measureText(txt).width/2), (H/2)+(FONT_H*1.5));
+	//(W/2)-(ctx.measureText(txt).width/2)
+}
+
 var draw = function() {
 
 	clearBackground(ctx);
@@ -148,6 +174,11 @@ setInterval(function(){
 	actions();
 	
 	draw();
+	
+	if( pause ){
+		drawPaused();
+		return;	
+	}
 	
 	var tmp = actors;
 	for( var i=0; i<tmp.length; ++i ){
