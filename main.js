@@ -132,10 +132,15 @@ var FONT_HEIGHT = FONT_H*1.5+4;
 ctx.font = FONT_H+'pt testFont';
 
 var msg = [
-	'Game Paused',
+	'-- Game Paused --',
 	'Press any key to continue.',
 	'',
-	'Controls: TODO WRITE THIS!',
+	'-- Controls --',
+	'Rotate Left: a OR <left arrow>',
+	'Rotate right: d OR <right arrow>',
+	'Fire engines: w OR <up arrow>',
+	'Brake: s OR space OR <down arrow>',
+	"Power Brake: hold 'fire engines' & 'brake'"
 ];
 
 var drawPaused = function(){
