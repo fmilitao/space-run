@@ -29,27 +29,6 @@ var SPARK_SIZE = 1;
  * Utils
  */
 
-
-/*
- * var d = Math.sqrt(Math.pow((s.p.x - p.x), 2) + Math.pow((s.p.y - p.y), 2));
-		if (d < (size / 2 + s.r)) {
-			s.slowdown();
-		}
-		
-		
-		var d = Math.sqrt( Math.pow((s.p.x-x),2) + Math.pow((s.p.y-y),2) );
-		if( d <= ((CHECKPOINT_R/2)+s.r) ){
-			s.points( t );
-			// collides
-			var sp = Random()*10+10;
-        	while( sp-- > 0 )
-				actors.push( new Spark(x,y,Random()*TWO_PI) );
-			
-			t = 0;
-			actors.push( new CheckPoint() );
-		}
- */
-
 var collides = function( ship, p, r ){
 	var xx = ship.p.x - p.x;
 	var yy = ship.p.y - p.y;
@@ -58,7 +37,7 @@ var collides = function( ship, p, r ){
 	if( xx*xx + yy*yy > rr*rr )
 		return false;
 		
-	//FIXME
+	//FIXME intersection tests is missing...
 	return true;
 }
 
@@ -268,7 +247,8 @@ var Ship = function(x,y){
     	var yy = (p.y).toFixed(1);
     	var vv = this.getVel().toFixed(1);
 		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
-    	return 'score='+fix(points.toFixed(1),4)+' pos=('+fix(xx,6)+', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
+    	return 'score='+fix(points.toFixed(1),4)+' pos=('+fix(xx,6)+
+    		', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
     };
 
 };
