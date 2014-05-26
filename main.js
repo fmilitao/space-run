@@ -23,7 +23,7 @@ var right = false;
 var up = false;
 var down = false;
 
-var pause = false;
+var pause = true;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
 var checkKeys = function() {
@@ -59,6 +59,8 @@ if( parameters.length > 1 ){
     			case 'h':
     				H = parseInt(value);
     				break;
+    			case 'p':
+    				pause = (parseInt(value) > 0);
     			default: // no other options
     				break;
     		}
@@ -126,7 +128,15 @@ var clearBackground = function(ctx){
 }
 
 var FONT_H = 8;
+var FONT_HEIGHT = FONT_H*1.5+4;
 ctx.font = FONT_H+'pt testFont';
+
+var msg = [
+	'Game Paused',
+	'Press any key to continue.',
+	'',
+	'Controls: TODO WRITE THIS!',
+];
 
 var drawPaused = function(){
 	clearBackground(ctx);
@@ -136,9 +146,13 @@ var drawPaused = function(){
 
 	ctx.fillStyle = 'white';
 	ctx.lineWidth = 1;
-		
-	var txt = "Game Paused. Press any key to continue.";
-	ctx.fillText(txt, (W/2)-(ctx.measureText(txt).width/2), (H/2)+(FONT_H*1.5));
+	
+	for( var i=0; i<msg.length; ++i ){
+		var txt = msg[i];
+		ctx.fillText(txt,
+			(W/2)-(ctx.measureText(txt).width/2),
+			(H/2-(FONT_HEIGHT*msg.length/2))+(FONT_HEIGHT*i));
+	}
 }
 
 var draw = function() {
