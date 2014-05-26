@@ -199,11 +199,11 @@ setInterval(function(){
 	}
 	
 	var tmp = actors;
+	actors = [];
+
 	for( var i=0; i<tmp.length; ++i ){
 		tmp[i].collision( ship );
-	}
-	
-	actors = [];
+	}	
 	
 	for( var i=0; i<tmp.length; ++i ){
 		tmp[i].tick(time,H,W);
