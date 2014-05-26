@@ -8,8 +8,8 @@ var keyControl = function(key, down) { keys[key] = down; };
 
 var funkU = function(e) { 
 		keyControl(e.keyCode, false);
-		if( e.keyCode == 80 )
-			pause = !pause; 
+		if( pause ||  (!pause && e.keyCode === 80) ) // 'p' key
+			pause = !pause;
 	};
 var funkD = function(e) {
 		keyControl(e.keyCode, true);
@@ -137,9 +137,8 @@ var drawPaused = function(){
 	ctx.fillStyle = 'white';
 	ctx.lineWidth = 1;
 		
-	var txt = "Game Paused. Press 'p' to continue.";
+	var txt = "Game Paused. Press any key to continue.";
 	ctx.fillText(txt, (W/2)-(ctx.measureText(txt).width/2), (H/2)+(FONT_H*1.5));
-	//(W/2)-(ctx.measureText(txt).width/2)
 }
 
 var draw = function() {
