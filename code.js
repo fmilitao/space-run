@@ -14,7 +14,7 @@ var SMOKE_COLOR = ['rgba(37,37,37,','rgba(21,21,21,'];
 var SMOKE_F = 0.99;
 var SMOKE_MAX = 5;
 
-var GUE_F = 0.95;
+var GUE_F = 0.98;
 var GUE_MAX = 30;
 var GUE_COLOR = 'rgba(0,255,0,';
 
@@ -264,19 +264,20 @@ var CheckPoint = function(){
 	}
 	
 	this.draw = function(ctx) {
-		var df = t/CHECKPOINT_MAX;
-		
+		var df = t/CHECKPOINT_MAX; // from 1 to 0
+
         ctx.save();
 	        ctx.beginPath();
 			ctx.arc(x, y, CHECKPOINT_R, 0, TWO_PI, false);
 
 			ctx.lineWidth = 3*(1-df)+1;
-			ctx.strokeStyle = 'rgba(255,0,0,'+(1-df)+')';
-			ctx.fillStyle = 'rgba(255,0,0,'+df+')';
+			ctx.strokeStyle = 'rgba(0,255,0,'+(1-df)+')';
+			ctx.fillStyle = 'rgba('+Math.round(255*df)+','+Math.round(255*(1-df))
+				+',0,'+(df<0.5 ? (1-df) : df )+')';
 			ctx.fill();
 			ctx.stroke();
 			
-			ctx.fillStyle = 'white';
+			ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
 			var text = t.toFixed(1);
 			ctx.fillText( text, 
 					x-ctx.measureText(text).width/2,
@@ -295,7 +296,7 @@ var CheckPoint = function(){
         if( this.dead() ){ // just died
         	actors.push( new CheckPoint() );
         	
-        	var gues = Random()*4+4;
+        	var gues = Random()*4+2;
         	while( gues-- > 0 )
         		actors.push( new Gue(x,y) );
         }
@@ -357,10 +358,11 @@ var Smoke = function(x,y,vx,vy){
 
 var Gue = function(x,y){
 	var angle = TWO_PI*Random();
-    var size = Random()*20+10;
+    var size = Random()*20+30;
+    var speed = Random()*20;
 
 	var p = { x: x, y: y };
-	var v = { x: Math.cos(angle)*15, y: Math.sin(angle)*15 };	
+	var v = { x: Math.cos(angle)*speed, y: Math.sin(angle)*speed };	
     var t = GUE_MAX;
     var s = size-10*(t/GUE_MAX);
     
@@ -391,7 +393,7 @@ var Gue = function(x,y){
       
 	this.collision = function(ship) {
 		if( collides( ship, p, s ) ){
-			ship.slowdown( GUE_F + (1-GUE_F)*(1-t/GUE_MAX) );
+			ship.slowdown( 0.8 + (1-0.8)*(1-t/GUE_MAX) );
 		}
 	};
 
