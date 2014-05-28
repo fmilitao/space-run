@@ -106,14 +106,18 @@ var Ship = function(x,y){
     var power = null;
     var p = { x:x, y:y };
 	var v = { x:0, y:0 };
-	var points = 0;
 	var r = 0;
+	
+	var points = 0;
+	var timer = 0;
+	var max = 0;
 	
 	this.p = p;
 	this.radius = 15;
 	
 	this.points = function(p){
 		points += p;
+		timer += 3;
 	}
 
 	this.getVel = function(){
@@ -234,6 +238,13 @@ var Ship = function(x,y){
         p.x += v.x*t;
 	    p.y += v.y*t;
 	    
+	    timer -= tick;
+	    if( timer <= 0 ){
+	    	max = Math.max( max, points );
+	    	points = 0;
+	    	timer = 0;
+	    }
+	    
 	    this.bounds(H,W);
     };
     
@@ -254,7 +265,8 @@ var Ship = function(x,y){
 	};
     
     this.toString = function(){
-    	var score = 'score: '+fix(points.toFixed(1),4);
+    	var score = 'score: '+fix(points.toFixed(1),5)+' '
+    		+(timer>0 ?'timeout: '+timer.toFixed(1)+'s':'(max: '+max.toFixed(1)+')');
     	if(!debug)
     		return score;
     		

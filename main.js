@@ -195,6 +195,7 @@ var draw = function() {
 var fps = 30;
 var interval = 1000 / fps;
 var time = 1/20;
+var tick = 1/30;
 
 setInterval(function(){
 	actions();
