@@ -8,7 +8,7 @@ var MAX_R = 32;
 var MAX_POWER = 150;
 var MAX_SPEED = 250;
 var FIRE = 5;
-var BRAKE = 0.8;
+var BRAKE = 0.9;
 
 var SMOKE_COLOR = ['rgba(37,37,37,','rgba(21,21,21,'];
 var SMOKE_F = 0.99;
@@ -124,6 +124,11 @@ var Ship = function(x,y){
 		v.x = pow*Math.cos( this.angle() );
         v.y = pow*Math.sin( this.angle() );
    	};
+   	
+   	this.addVel = function(pow){
+		v.x += pow*Math.cos( this.angle() );
+        v.y += pow*Math.sin( this.angle() );
+   	};
     
     this.angle = function(){
 		return TWO_PI/MAX_R*r;
@@ -206,7 +211,8 @@ var Ship = function(x,y){
     this.powerBrake = function(isOn){
     	if( !isOn && power !== null ){
     		// apply boost
-        	this.setVel( power );
+        	//this.setVel( power );
+        	this.addVel( power );
         	power = null;
         	return;
     	}
@@ -214,10 +220,13 @@ var Ship = function(x,y){
     	if( isOn ){
 	    	if( power === null ){
 	    		// power brake speed to remember
-	    		power = this.getVel();
-	    		power = Math.min( power, MAX_POWER );
+	    		power = 0; //this.getVel();
+	    		//power = Math.min( power, MAX_POWER );
 	    	}
+	    	var tmp = this.getVel();
 	        this.brake();
+	        tmp -= this.getVel();
+	        power += tmp;
        	}
     };
     
