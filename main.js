@@ -24,6 +24,7 @@ var up = false;
 var down = false;
 
 var pause = true;
+var debug = false;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
 var checkKeys = function() {
@@ -60,7 +61,10 @@ if( parameters.length > 1 ){
     				H = parseInt(value);
     				break;
     			case 'p':
-    				pause = (parseInt(value) > 0);
+    				pause = (value.toLowerCase() === 'true');
+    			case 'd':
+    			case 'debug':
+    				debug = (value.toLowerCase() === 'true');
     			default: // no other options
     				break;
     		}
@@ -177,8 +181,8 @@ var draw = function() {
 		ctx.fillStyle = 'white';
 		ctx.lineWidth = 1;
 		
-		var txt = 'Player One: '+ship.toString();
-		ctx.fillText(txt, 2, FONT_H*1.5+2);
+		var txt = ship.toString();
+		ctx.fillText(txt, 4, FONT_H*1.5+2);
 	ctx.restore();
 
 };

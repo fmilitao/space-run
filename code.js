@@ -25,6 +25,8 @@ var SPARK_T = 3;
 var SPARK_F = 0.99;
 var SPARK_SIZE = 1;
 
+var POINTS_MAX = 3;
+
 /*
  * Utils
  */
@@ -243,11 +245,15 @@ var Ship = function(x,y){
 	};
     
     this.toString = function(){
+    	var score = 'score: '+fix(points.toFixed(1),4);
+    	if(!debug)
+    		return score;
+    		
     	var xx = (p.x).toFixed(1);
     	var yy = (p.y).toFixed(1);
     	var vv = this.getVel().toFixed(1);
 		var pp = power !== null ? '('+power.toFixed(1)+')':''; 
-    	return 'score='+fix(points.toFixed(1),4)+' pos=('+fix(xx,6)+
+    	return score+' pos=('+fix(xx,6)+
     		', '+fix(yy,6)+') vel='+fix(vv,6)+' '+pp;
     };
 
@@ -258,6 +264,7 @@ var CheckPoint = function(){
 	var x = Random()*(W-CHECKPOINT_R*2)+CHECKPOINT_R;
 	var y = Random()*(H-CHECKPOINT_R*2)+CHECKPOINT_R;
 	var p = { x : x, y : y };
+	var r = (1-t/CHECKPOINT_MAX)*CHECKPOINT_R+2;
 	
 	this.dead = function() {
 		return t <= 0;
@@ -268,22 +275,25 @@ var CheckPoint = function(){
 
         ctx.save();
 	        ctx.beginPath();
-			ctx.arc(x, y, CHECKPOINT_R, 0, TWO_PI, false);
+			ctx.arc(x, y, r, 0, TWO_PI, false);
 
 			ctx.lineWidth = 3*(1-df)+1;
-			ctx.strokeStyle = 'rgba(0,255,0,'+(1-df)+')';
+			ctx.strokeStyle = 'rgba('+Math.round(255*(1-df))+','+Math.round(255*df)
+				+',128,'+(df<0.5 ? (1-df) : df )+')'; 
+			//'rgba(0,255,0,'+(1-df)+')';
 			ctx.fillStyle = 'rgba('+Math.round(255*df)+','+Math.round(255*(1-df))
 				+',0,'+(df<0.5 ? (1-df) : df )+')';
 			ctx.fill();
 			ctx.stroke();
 			
-			ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
-			var text = t.toFixed(1);
-			ctx.fillText( text, 
-					x-ctx.measureText(text).width/2,
-					y+(FONT_H*1.5)/2 );
+			if( debug ){
+				ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
+				var text = t.toFixed(1);
+				ctx.fillText( text, 
+						x-ctx.measureText(text).width/2,
+						y+(FONT_H*1.5)/2 );
+			}
 		ctx.restore();
-		
 
     };
     
@@ -292,6 +302,7 @@ var CheckPoint = function(){
 			return;
 			
         t -= time;
+        r = (1-t/CHECKPOINT_MAX)*CHECKPOINT_R+2;
         
         if( this.dead() ){ // just died
         	actors.push( new CheckPoint() );
@@ -303,8 +314,9 @@ var CheckPoint = function(){
     };
     
     this.collision = function(s){
-		if( collides( s, p, CHECKPOINT_R ) ){
-			s.points( t );
+		if( collides( s, p, r ) ){
+			var val = t*10;
+			s.points( val );
 			t = 0; // dies
 
 			var sp = Random()*10+10;
@@ -312,6 +324,7 @@ var CheckPoint = function(){
 				actors.push( new Spark(x,y,Random()*TWO_PI) );
 			
 			actors.push( new CheckPoint() );
+			actors.push( new Points(x,y,val) );
 		}
 	};
     
@@ -399,6 +412,35 @@ var Gue = function(x,y){
 
 };
 
+var Points = function(x,y,val){
+	var p = { x: x, y: y };
+    var t = POINTS_MAX;
+    val = ('+'+val.toFixed(1)+'!');
+    
+    this.dead = function() {
+		return t <= 0;
+	}
+    
+    this.draw = function(ctx) {
+        var df = (t/POINTS_MAX);
+        
+        ctx.save();
+        	ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255')+','+ df +')';
+			var text = val;
+			ctx.fillText( text, 
+				x-ctx.measureText(text).width/2,
+				y+(FONT_H*1.5)/2 );
+		ctx.restore();
+    };
+    
+    this.tick = function(time){
+        t -= time;
+    };
+
+	this.collision = function(s){
+		// never collides
+	};
+};
 
 var Spark = function(x,y,angle){
 	var p = { x: x+((Random()*5)-2), y: y+((Random()*5)-2) };
