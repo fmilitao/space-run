@@ -38,15 +38,21 @@ var collides = function( ship, p, r ){
 	
 	if( xx*xx + yy*yy > rr*rr )
 		return false;
-		
-	//FIXME intersection tests is missing...
-	return true;
+	
+	var p0 = ship.rot(5,-5);
+	var p1 = ship.rot(-5,5);
+	var p2 = ship.rot(15,0);
+	
+	return inters( p0, p1, p, r ) ||
+			inters( p1, p2, p, r ) ||
+			inters( p2, p0, p, r ) ;
 }
 
+//XXX FIXME
 //http://www.gamedev.net/community/forums/topic.asp?topic_id=304578
-var _intersects = function(p0,p1,c){ //XXX FIXME
-    var x0 = c.z.x;
-	var y0 = c.z.y;
+var inters = function(p0,p1,c,cw){
+    var x0 = c.x;
+	var y0 = c.y;
 	var x1 = p0.x;
 	var y1 = p0.y;
 	var x2 = p1.x;
@@ -55,15 +61,15 @@ var _intersects = function(p0,p1,c){ //XXX FIXME
 	var n = Math.abs( (x2-x1)*(y1-y0) - (x1-x0)*(y2-y1) );
 	var d = Math.sqrt( (x2-x1)*(x2-x1) + (y2-y1)*(y2-y1) );
 	var dist = n/d;
-	if( dist > c.w )
+	if( dist > cw )
 		return false;
 	
 	var d1 = Math.sqrt( (x0-x1)*(x0-x1) + (y0-y1)*(y0-y1) );
-	if( (d1-c.w) > d )
+	if( (d1-cw) > d )
 		return false;
 	
 	var d2 = Math.sqrt( Math.pow(x0-x2,2) + Math.pow(y0-y2,2));
-	if( (d2-c.w) > d )
+	if( (d2-cw) > d )
 		return false;
 	
 	return true;
@@ -114,6 +120,12 @@ var Ship = function(x,y){
 	
 	this.p = p;
 	this.radius = 15;
+	
+	this.rot = function(x,y){
+		var cos_angle = Math.cos( this.angle() );
+    	var sin_angle = Math.sin( this.angle() );
+		return { x : (x*cos_angle - y*sin_angle)+p.x, y : (x*sin_angle + y*cos_angle)+p.y };
+	}
 	
 	this.points = function(p){
 		points += p;
