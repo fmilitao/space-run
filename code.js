@@ -252,8 +252,14 @@ var Ship = function(x,y){
 	    
 	    timer -= tick;
 	    if( timer <= 0 ){
-	    	max = Math.max( max, points );
-	    	points = 0;
+	    	if( points > 0 ){
+	    		if( max >= points )
+	    			actors.push( new Points(W/2,H/2,'SCORE RESET',40) );
+	    		else
+	    			actors.push( new Points(W/2,H/2,'NEW RECORD!!',50) );
+		    	max = Math.max( max, points );
+		    	points = 0;
+	    	}
 	    	timer = 0;
 	    }
 	    
@@ -310,7 +316,7 @@ var CheckPoint = function(){
 	        ctx.beginPath();
 			ctx.arc(x, y, r, 0, TWO_PI, false);
 
-			ctx.lineWidth = 2*(df)+1;
+			ctx.lineWidth = 3*(df)+1;
 			ctx.strokeStyle = 'rgba('+Math.round(255*(1-df))+','+Math.round(255*df)
 				+',128,'+(df<0.5 ? (1-df) : df )+')'; 
 			//'rgba(0,255,0,'+(1-df)+')';
@@ -357,7 +363,7 @@ var CheckPoint = function(){
 				actors.push( new Spark(x,y,Random()*TWO_PI) );
 			
 			actors.push( new CheckPoint() );
-			actors.push( new Points(x,y,val) );
+			actors.push( new Points(x,y,('+'+val.toFixed(1)+'!')) );
 		}
 	};
     
@@ -382,7 +388,7 @@ var Smoke = function(x,y,vx,vy){
         ctx.save();
 	        ctx.beginPath();
 			ctx.arc( p.x, p.y, size, 0, TWO_PI, false);
-			ctx.fillStyle = c+(df+0.1)+')';
+			ctx.fillStyle = c+(df+0.01)+')';
 			ctx.fill();
 			ctx.closePath();
 		ctx.restore();
@@ -445,10 +451,11 @@ var Gue = function(x,y){
 
 };
 
-var Points = function(x,y,val){
+var Points = function(x,y,val,s){
 	var p = { x: x, y: y };
     var t = POINTS_MAX;
-    val = ('+'+val.toFixed(1)+'!');
+    if ( s === undefined )
+    	s = FONT_H;
     
     this.dead = function() {
 		return t <= 0;
@@ -460,6 +467,7 @@ var Points = function(x,y,val){
         ctx.save();
         	ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255')+','+ (df+0.1) +')';
 			var text = val;
+			ctx.font = s+'pt testFont';
 			ctx.fillText( text, 
 				x-ctx.measureText(text).width/2,
 				y+(FONT_H*1.5)/2 );
