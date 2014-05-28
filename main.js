@@ -139,12 +139,16 @@ var msg = [
 	'-- Game Paused --',
 	'Press any key to continue.',
 	'',
+	'-- Objective --',
+	'Pop all circle thingies...',
+	'Warning: green gue slows you down.',
+	'',
 	'-- Controls --',
-	'Rotate Left: a OR <left arrow>',
-	'Rotate right: d OR <right arrow>',
-	'Fire engines: w OR <up arrow>',
-	'Brake: s OR space OR <down arrow>',
-	"Power Brake: hold 'fire engines' & 'brake'"
+	'       Left: a OR <left arrow>            ',
+	'      Right: d OR <right arrow>           ',
+	'    Engines: w OR <up arrow>              ',
+	'      Brake: s OR space OR <down arrow>   ',
+	"Power-Brake: hold 'fire engines' & 'brake'"
 ];
 
 var drawPaused = function(){

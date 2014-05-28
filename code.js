@@ -277,12 +277,12 @@ var CheckPoint = function(){
 	        ctx.beginPath();
 			ctx.arc(x, y, r, 0, TWO_PI, false);
 
-			ctx.lineWidth = 3*(1-df)+1;
+			ctx.lineWidth = 2*(df)+1;
 			ctx.strokeStyle = 'rgba('+Math.round(255*(1-df))+','+Math.round(255*df)
 				+',128,'+(df<0.5 ? (1-df) : df )+')'; 
 			//'rgba(0,255,0,'+(1-df)+')';
-			ctx.fillStyle = 'rgba('+Math.round(255*df)+','+Math.round(255*(1-df))
-				+',0,'+(df<0.5 ? (1-df) : df )+')';
+			ctx.fillStyle = 'rgba( 0,'+Math.round(255*(1-df))
+				+','+Math.round(255*df)+','+(df<0.5 ? (1-df) : df )+')';
 			ctx.fill();
 			ctx.stroke();
 			
@@ -425,7 +425,7 @@ var Points = function(x,y,val){
         var df = (t/POINTS_MAX);
         
         ctx.save();
-        	ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255')+','+ df +')';
+        	ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255')+','+ (df+0.1) +')';
 			var text = val;
 			ctx.fillText( text, 
 				x-ctx.measureText(text).width/2,
@@ -461,7 +461,7 @@ var Spark = function(x,y,angle){
 
 			ctx.lineWidth = 2;
 			ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-			ctx.fillStyle = 'rgba(255,255,0,'+df+')';
+			ctx.fillStyle = 'rgba(255,255,0,'+(df+0.1)+')';
 			ctx.fill();
 			ctx.stroke();
 		ctx.restore();
