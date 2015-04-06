@@ -6,18 +6,18 @@
 var keys = [];
 var keyControl = (key, down) => { keys[key] = down; };
 
-function funkU(e) {
+function keyUp(e) {
     keyControl(e.keyCode, false);
-    if (pause || (!pause && e.keyCode === 80)) // 'p' key
+    if (pause || (!pause && e.keyCode === 80)) // 80 is 'p' key code
         pause = !pause;
 };
 
-function funkD(e) {
+function keyDown(e) {
     keyControl(e.keyCode, true);
 };
 
-window.addEventListener("keyup", funkU, true);
-window.addEventListener("keydown", funkD, true);
+window.addEventListener("keyup", keyUp, true);
+window.addEventListener("keydown", keyDown, true);
 
 var left = false;
 var right = false;
@@ -39,21 +39,21 @@ var checkKeys = function() {
  * CANVAS SETUP
  */
 
-var canvas = <HTMLCanvasElement> document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
+const canvas = <HTMLCanvasElement> document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
 
 var W = window.innerWidth - 4;
 var H = window.innerHeight - 4;
 
 // override default canvas size
-var parameters = document.URL.split('?');
+let parameters = document.URL.split('?');
 if (parameters.length > 1) {
     parameters = parameters[1].split('&');
-    for (var i = 0; i < parameters.length; ++i) {
-        var tmp = parameters[i].split('=');
+    for (let i = 0; i < parameters.length; ++i) {
+        let tmp = parameters[i].split('=');
         if (tmp.length > 1) {
-            var option = tmp[0];
-            var value = tmp[1];
+            let option = tmp[0];
+            let value = tmp[1];
             switch (option) {
                 case 'w':
                     W = parseInt(value);
@@ -80,7 +80,7 @@ ctx.canvas.height = H;
  * MAIN LOOP
  */
 
-var ship = new Ship(W / 2, H / 2);
+const ship = new Ship(W / 2, H / 2);
 
 function actions() {
     checkKeys();
@@ -98,28 +98,28 @@ function actions() {
         if (down)
             ship.brake();
     }
-}
+};
 
-var actors = [];
+let actors : Actor[] = [];
 
 actors.push(ship);
 
-var cp = 3;
+let cp = 3;
 while (cp-- > 0)
     actors.push(new CheckPoint());
 
-var background = null;
-function clearBackground(ctx) {
+let background : ImageData = null;
+function clearBackground(ctx : CanvasRenderingContext2D) {
     if (background !== null) {
         ctx.putImageData(background, 0, 0);
     } else {
         // draws background and stores it for later
         ctx.fillStyle = "#222244";
         ctx.fillRect(0, 0, W, H);
-        for (var i = 0; i < 150; ++i) {
-            var x = Math.random() * W;
-            var y = Math.random() * H;
-            var s = Math.random() + 1
+        for (let i = 0; i < 150; ++i) {
+            const x = Math.random() * W;
+            const y = Math.random() * H;
+            const s = Math.random() + 1
 
             ctx.save();
             ctx.beginPath();
@@ -130,7 +130,7 @@ function clearBackground(ctx) {
         }
         background = ctx.getImageData(0, 0, W, H);
     }
-}
+};
 
 const FONT_H = 8;
 const FONT_HEIGHT = FONT_H * 1.5 + 4;
@@ -161,19 +161,19 @@ function drawPaused() {
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
 
-    for (var i = 0; i < msg.length; ++i) {
-        var txt = msg[i];
+    for (let i = 0; i < msg.length; ++i) {
+        const txt = msg[i];
         ctx.fillText(txt,
             (W / 2) - (ctx.measureText(txt).width / 2),
             (H / 2 - (FONT_HEIGHT * msg.length / 2)) + (FONT_HEIGHT * i));
     }
-}
+};
 
 function draw() {
 
     clearBackground(ctx);
 
-    for (var i = 0; i < actors.length; ++i) {
+    for (let i = 0; i < actors.length; ++i) {
         actors[i].draw(ctx);
     }
 
@@ -186,7 +186,7 @@ function draw() {
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
 
-    var txt = ship.toString();
+    const txt = ship.toString();
     ctx.fillText(txt, 4, FONT_H * 1.5 + 2);
     ctx.restore();
 
@@ -208,14 +208,14 @@ setInterval(function() {
         return;
     }
 
-    const tmp = actors;
+    const tmp : Actor[] = actors;
     actors = [];
 
-    for (var i = 0; i < tmp.length; ++i) {
+    for (let i = 0; i < tmp.length; ++i) {
         tmp[i].collision(ship);
     }
 
-    for (var i = 0; i < tmp.length; ++i) {
+    for (let i = 0; i < tmp.length; ++i) {
         tmp[i].tick(time, H, W);
         if (!tmp[i].dead())
             actors.push(tmp[i]);

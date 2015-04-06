@@ -3,18 +3,18 @@
  */
 var keys = [];
 var keyControl = function (key, down) { keys[key] = down; };
-function funkU(e) {
+function keyUp(e) {
     keyControl(e.keyCode, false);
     if (pause || (!pause && e.keyCode === 80))
         pause = !pause;
 }
 ;
-function funkD(e) {
+function keyDown(e) {
     keyControl(e.keyCode, true);
 }
 ;
-window.addEventListener("keyup", funkU, true);
-window.addEventListener("keydown", funkD, true);
+window.addEventListener("keyup", keyUp, true);
+window.addEventListener("keydown", keyDown, true);
 var left = false;
 var right = false;
 var up = false;
@@ -76,6 +76,7 @@ function actions() {
             ship.brake();
     }
 }
+;
 var actors = [];
 actors.push(ship);
 var cp = 3;
@@ -103,6 +104,7 @@ function clearBackground(ctx) {
         background = ctx.getImageData(0, 0, W, H);
     }
 }
+;
 var FONT_H = 8;
 var FONT_HEIGHT = FONT_H * 1.5 + 4;
 ctx.font = FONT_H + 'pt testFont';
@@ -132,6 +134,7 @@ function drawPaused() {
         ctx.fillText(txt, (W / 2) - (ctx.measureText(txt).width / 2), (H / 2 - (FONT_HEIGHT * msg.length / 2)) + (FONT_HEIGHT * i));
     }
 }
+;
 function draw() {
     clearBackground(ctx);
     for (var i = 0; i < actors.length; ++i) {

@@ -117,6 +117,7 @@ interface Actor {
     dead(): boolean;
     tick(time: number, H?: number, W?: number): void;
     draw(ctx: CanvasRenderingContext2D): void;
+    collision(s : Ship) : void;
 }
 
 class Ship implements Actor {
