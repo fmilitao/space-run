@@ -83,7 +83,7 @@ var fix = function(str, length) {
     return tmp;
 };
 
-var drawMissile = function(ctx) {
+var drawMissile = function(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
     ctx.moveTo(-4, -4);
     ctx.lineTo(-4, 4);
@@ -94,7 +94,7 @@ var drawMissile = function(ctx) {
     ctx.closePath();
 };
 
-var drawTriangle = function(ctx) {
+var drawTriangle = function(ctx: CanvasRenderingContext2D) {
     ctx.beginPath();
     ctx.moveTo(-5, -5);
     ctx.lineTo(-5, 5);
@@ -115,57 +115,71 @@ interface PosXY {
 
 interface Actor {
     dead(): boolean;
-    tick(time: number): void;
+    tick(time: number, H?: number, W?: number): void;
     draw(ctx: CanvasRenderingContext2D): void;
 }
 
-var Ship = function(x, y) {
+class Ship implements Actor {
 
-    var power = null;
-    var p = { x: x, y: y };
-    var v = { x: 0, y: 0 };
-    var r = 0;
+    protected power: number;
+    protected p: PosXY;
+    protected v: PosXY;
+    protected r: number;
+    protected score: number;
+    protected timer: number;
+    protected max: number;
+    protected radius: number;
 
-    var points = 0;
-    var timer = 0;
-    var max = 0;
+    constructor(x: number, y: number) {
 
-    this.p = p;
-    this.radius = 15;
+        this.power = null; // crap, union don't work well on fields.
+        this.p = { x: x, y: y };
+        this.v = { x: 0, y: 0 };
+        this.r = 0;
 
-    this.rot = function(x, y) {
+        this.score = 0;
+        this.timer = 0;
+        this.max = 0;
+
+        this.radius = 15;
+    }
+
+    rot(x: number, y: number) {
         var cos_angle = Math.cos(this.angle());
         var sin_angle = Math.sin(this.angle());
-        return { x: (x * cos_angle - y * sin_angle) + p.x, y: (x * sin_angle + y * cos_angle) + p.y };
+        return {
+            x: (x * cos_angle - y * sin_angle) + this.p.x,
+            y: (x * sin_angle + y * cos_angle) + this.p.y
+        };
     }
 
-    this.points = function(p) {
-        points += p;
-        timer += 3;
+    points(p: number) {
+        this.score += p;
+        this.timer += 3;
     }
 
-    this.getVel = function() {
-        return Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2));
-    };
+    getVel() {
+        return Math.sqrt(Math.pow(this.v.x, 2) + Math.pow(this.v.y, 2));
+    }
 
-    this.setVel = function(pow) {
-        v.x = pow * Math.cos(this.angle());
-        v.y = pow * Math.sin(this.angle());
-   	};
+    setVel(pow: number) {
+        this.v.x = pow * Math.cos(this.angle());
+        this.v.y = pow * Math.sin(this.angle());
+   	}
 
-   	this.addVel = function(pow) {
-        v.x += pow * Math.cos(this.angle());
-        v.y += pow * Math.sin(this.angle());
-   	};
+   	addVel(pow: number) {
+        this.v.x += pow * Math.cos(this.angle());
+        this.v.y += pow * Math.sin(this.angle());
+   	}
 
-    this.angle = function() {
-        return TWO_PI / MAX_R * r;
-    };
+    angle() {
+        return TWO_PI / MAX_R * this.r;
+    }
 
-    this.draw = function(ctx) {
+    draw(ctx: CanvasRenderingContext2D) {
         ctx.save();
 
-        ctx.translate(p.x, p.y);
+        ctx.translate(this.p.x, this.p.y);
         ctx.rotate(this.angle());
 
         //if engines on
@@ -182,8 +196,8 @@ var Ship = function(x, y) {
             ctx.fill();
             ctx.restore();
 
-            var xx = p.x - (Math.cos(this.angle()) * 17);
-            var yy = p.y - (Math.sin(this.angle()) * 17);
+            var xx = this.p.x - (Math.cos(this.angle()) * 17);
+            var yy = this.p.y - (Math.sin(this.angle()) * 17);
             actors.push(new Smoke(xx, yy, Math.cos(this.angle()), Math.sin(this.angle())));
 
         }
@@ -211,122 +225,134 @@ var Ship = function(x, y) {
         ctx.stroke();
 
         ctx.restore();
-    };
+    }
 
-    this.left = function() { r = (r - 1) % MAX_R; };
-    this.right = function() { r = (r + 1) % MAX_R; };
+    left() {
+        this.r = (this.r - 1) % MAX_R;
+    }
 
-    this.fire = function() {
-        v.x += FIRE * Math.cos(this.angle());
-        v.y += FIRE * Math.sin(this.angle());
+    right() {
+        this.r = (this.r + 1) % MAX_R;
+    }
+
+    fire() {
+        this.v.x += FIRE * Math.cos(this.angle());
+        this.v.y += FIRE * Math.sin(this.angle());
 
         // when reaches limit starts to friction
         if (this.getVel() > MAX_SPEED) {
             this.slowdown(GUE_F);
         }
-    };
+    }
 
-    this.brake = function() {
-        v.x *= BRAKE;
-        v.y *= BRAKE;
-    };
+    brake() {
+        this.v.x *= BRAKE;
+        this.v.y *= BRAKE;
+    }
 
-    this.slowdown = function(friction) {
-        v.x *= friction;
-        v.y *= friction;
-    };
+    slowdown(friction: number) {
+        this.v.x *= friction;
+        this.v.y *= friction;
+    }
 
-    this.powerBrake = function(isOn) {
-        if (!isOn && power !== null) {
+    powerBrake(isOn: boolean) {
+        if (!isOn && this.power !== null) {
             // apply boost
             //this.setVel( power );
-            this.addVel(power);
-            power = null;
+            this.addVel(this.power);
+            this.power = null;
             return;
         }
 
         if (isOn) {
-            if (power === null) {
-                // power brake speed to remember
+            if (this.power === null) {
+                this.// power brake speed to remember
                 power = 0; //this.getVel();
                 //power = Math.min( power, MAX_POWER );
             }
             var tmp = this.getVel();
             this.brake();
             tmp -= this.getVel();
-            power += tmp;
+            this.power += tmp;
        	}
-    };
+    }
 
-    this.tick = function(t, H, W) {
-        p.x += v.x * t;
-        p.y += v.y * t;
+    tick(t: number, H: number, W: number) {
+        this.p.x += this.v.x * t;
+        this.p.y += this.v.y * t;
 
-        timer -= tick;
-        if (timer <= 0) {
-            if (points > 0) {
-                if (max >= points)
+        this.timer -= tick;
+        if (this.timer <= 0) {
+            if (this.score > 0) {
+                if (this.max >= this.score)
                     actors.push(new Points(W / 2, H / 2, 'SCORE RESET', 40));
                 else
                     actors.push(new Points(W / 2, H / 2, 'NEW RECORD!!', 50));
-                max = Math.max(max, points);
-                points = 0;
+                this.max = Math.max(this.max, this.score);
+                this.score = 0;
             }
-            timer = 0;
+            this.timer = 0;
         }
 
         this.bounds(H, W);
-    };
+    }
 
-    this.bounds = function(H, W) {
-        if (p.x < 0) p.x = W;
-        if (p.x > W) p.x = 0;
+    bounds(H: number, W: number) {
+        if (this.p.x < 0) this.p.x = W;
+        if (this.p.x > W) this.p.x = 0;
 
-        if (p.y < 0) p.y = H;
-        if (p.y > H) p.y = 0;
-    };
+        if (this.p.y < 0) this.p.y = H;
+        if (this.p.y > H) this.p.y = 0;
+    }
 
-    this.dead = function() {
+    dead() {
         return false;
-    };
+    }
 
-    this.collision = function(s) {
+    collision(s) {
         // never collides with self
-    };
+    }
 
-    this.toString = function() {
-        var score = 'score: ' + fix(points.toFixed(1), 5) + ' '
-            + (timer > 0 ? 'timeout: ' + timer.toFixed(1) + 's' : '(max: ' + max.toFixed(1) + ')');
+    toString() {
+        var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
+            + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
         if (!debug)
             return score;
 
-        var xx = (p.x).toFixed(1);
-        var yy = (p.y).toFixed(1);
+        var xx = (this.p.x).toFixed(1);
+        var yy = (this.p.y).toFixed(1);
         var vv = this.getVel().toFixed(1);
-        var pp = power !== null ? '(' + power.toFixed(1) + ')' : '';
+        var pp = this.power !== null ? '(' + this.power.toFixed(1) + ')' : '';
         return score + ' pos=(' + fix(xx, 6) +
             ', ' + fix(yy, 6) + ') vel=' + fix(vv, 6) + ' ' + pp;
-    };
-
-};
-
-var CheckPoint = function() {
-    var t = CHECKPOINT_MAX;
-    var x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-    var y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
-    var p = { x: x, y: y };
-    var r = (1 - t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
-
-    this.dead = function() {
-        return t <= 0;
     }
 
-    this.draw = function(ctx) {
-        var df = t / CHECKPOINT_MAX; // from 1 to 0
+}
+
+class CheckPoint implements Actor {
+
+    protected t: number;
+    protected p: PosXY;
+    protected r: number;
+
+    constructor() {
+        this.t = CHECKPOINT_MAX;
+        const x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        const y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        this.p = { x: x, y: y };
+        this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
+    }
+
+    dead() {
+        return this.t <= 0;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        const df = this.t / CHECKPOINT_MAX; // from 1 to 0
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, this.r, 0, TWO_PI, false);
 
         ctx.lineWidth = 3 * (df) + 1;
         ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
@@ -339,140 +365,160 @@ var CheckPoint = function() {
 
         if (debug) {
             ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
-            var text = t.toFixed(1);
+            var text = this.t.toFixed(1);
             ctx.fillText(text,
-                x - ctx.measureText(text).width / 2,
-                y + (FONT_H * 1.5) / 2);
+                this.p.x - ctx.measureText(text).width / 2,
+                this.p.y + (FONT_H * 1.5) / 2);
         }
         ctx.restore();
 
-    };
+    }
 
-    this.tick = function(time) {
+    tick(time: number) {
         if (this.dead()) // already dead
             return;
 
-        t -= time;
-        r = (1 - t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
+        this.t -= time;
+        this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
 
         if (this.dead()) { // just died
             actors.push(new CheckPoint());
 
             var gues = Random() * 4 + 2;
             while (gues-- > 0)
-                actors.push(new Gue(x, y));
+                actors.push(new Gue(this.p.x, this.p.y));
         }
-    };
+    }
 
-    this.collision = function(s) {
-        if (collides(s, p, r)) {
-            var val = t * 10;
+    collision(s) {
+        if (collides(s, this.p, this.r)) {
+            var val = this.t * 10;
             s.points(val);
-            t = 0; // dies
+            this.t = 0; // dies
 
             var sp = Random() * 10 + 10;
             while (sp-- > 0)
-                actors.push(new Spark(x, y, Random() * TWO_PI));
+                actors.push(new Spark(this.p.x, this.p.y, Random() * TWO_PI));
 
             actors.push(new CheckPoint());
-            actors.push(new Points(x, y, ('+' + val.toFixed(1) + '!')));
+            actors.push(new Points(this.p.x, this.p.y, ('+' + val.toFixed(1) + '!')));
         }
-    };
-
-};
-
-
-var Smoke = function(x, y, vx, vy) {
-    var c = SMOKE_COLOR[Math.floor(Random() * SMOKE_COLOR.length)];
-
-    var p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
-    var v = { x: (Random() * 10 + 5) * vx, y: (Random() * 10 + 5) * vy };
-    var t = SMOKE_MAX;
-
-    this.dead = function() {
-        return t <= 0;
     }
 
-    this.draw = function(ctx) {
-        var df = (t / SMOKE_MAX);
-        var size = 15 - 12 * df;
+}
+
+
+class Smoke implements Actor {
+
+    protected c: string;
+    protected p: PosXY;
+    protected v: PosXY;
+    protected t: number;
+
+    constructor(x: number, y: number, vx: number, vy: number) {
+        this.c = SMOKE_COLOR[Math.floor(Random() * SMOKE_COLOR.length)];
+
+        this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
+        this.v = { x: (Random() * 10 + 5) * vx, y: (Random() * 10 + 5) * vy };
+        this.t = SMOKE_MAX;
+    }
+
+    dead() {
+        return this.t <= 0;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        const df = (this.t / SMOKE_MAX);
+        const size = 15 - 12 * df;
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, size, 0, TWO_PI, false);
-        ctx.fillStyle = c + (df + 0.01) + ')';
+        ctx.arc(this.p.x, this.p.y, size, 0, TWO_PI, false);
+        ctx.fillStyle = this.c + (df + 0.01) + ')';
         ctx.fill();
         ctx.closePath();
         ctx.restore();
-    };
-
-    this.tick = function(time) {
-        t -= time;
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= SMOKE_F;
-        v.y *= SMOKE_F;
-    };
-
-    this.collision = function(s) {
-        // never collides
-    };
-
-};
-
-var Gue = function(x, y) {
-    var angle = TWO_PI * Random();
-    var size = Random() * 20 + 30;
-    var speed = Random() * 20;
-
-    var p = { x: x, y: y };
-    var v = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-    var t = GUE_MAX;
-    var s = size - 10 * (t / GUE_MAX);
-
-    this.dead = function() {
-        return t <= 0;
     }
 
-    this.draw = function(ctx) {
-        var df = t / GUE_MAX;
+    tick(time: number) {
+        this.t -= time;
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= SMOKE_F;
+        this.v.y *= SMOKE_F;
+    }
+
+    collision(s) {
+        // never collides
+    }
+
+}
+
+class Gue implements Actor {
+
+    protected angle: number;
+    protected size: number;
+    protected speed: number;
+    protected p: PosXY;
+    protected v: PosXY;
+    protected t: number;
+    protected s: number;
+
+    constructor(x: number, y: number) {
+        this.angle = TWO_PI * Random();
+        this.size = Random() * 20 + 30;
+        this.speed = Random() * 20;
+
+        this.p = { x: x, y: y };
+        this.v = { x: Math.cos(this.angle) * this.speed, y: Math.sin(this.angle) * this.speed };
+        this.t = GUE_MAX;
+        this.s = this.size - 10 * (this.t / GUE_MAX);
+    }
+
+    dead() {
+        return this.t <= 0;
+    }
+
+    draw(ctx: CanvasRenderingContext2D) {
+        const df = this.t / GUE_MAX;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, s, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, this.s, 0, TWO_PI, false);
         ctx.fillStyle = GUE_COLOR + df + ')';
         ctx.fill();
         ctx.closePath();
         ctx.restore();
-    };
+    }
 
-    this.tick = function(time) {
-        t -= time;
-        s = size - 10 * (t / GUE_MAX);
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= GUE_F;
-        v.y *= GUE_F;
-    };
+    tick(time: number) {
+        this.t -= time;
+        this.s = this.size - 10 * (this.t / GUE_MAX);
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= GUE_F;
+        this.v.y *= GUE_F;
+    }
 
 
-    this.collision = function(ship) {
-        if (collides(ship, p, s)) {
-            ship.slowdown(0.8 + (1 - 0.8) * (1 - t / GUE_MAX));
+    collision(ship) {
+        if (collides(ship, this.p, this.s)) {
+            ship.slowdown(0.8 + (1 - 0.8) * (1 - this.t / GUE_MAX));
         }
-    };
+    }
 
-};
+}
+
 
 class Points implements Actor {
+
     protected p: PosXY;
     protected t: number;
-    protected s: number;
 
     constructor(
         protected x: number,
         protected y: number,
         protected val: string,
-        s?: number) {
+        protected s?: number) {
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
@@ -483,7 +529,7 @@ class Points implements Actor {
         return this.t <= 0;
     }
 
-    draw(ctx : CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D) {
         const df = (this.t / POINTS_MAX);
 
         ctx.save();
@@ -507,6 +553,7 @@ class Points implements Actor {
 
 
 class Spark implements Actor {
+
     protected p: PosXY;
     protected v: PosXY;
     protected t: number;
@@ -521,7 +568,7 @@ class Spark implements Actor {
         return this.t <= 0;
     }
 
-    draw(ctx : CanvasRenderingContext2D) {
+    draw(ctx: CanvasRenderingContext2D) {
         const df = (this.t / SPARK_T);
 
         ctx.save();
@@ -537,7 +584,7 @@ class Spark implements Actor {
         ctx.restore();
     }
 
-    tick(time : number) {
+    tick(time: number) {
         this.t -= time;
         this.p.x += this.v.x * time;
         this.p.y += this.v.y * time;

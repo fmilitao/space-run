@@ -76,42 +76,46 @@ var drawTriangle = function (ctx) {
     ctx.lineJoin = 'miter';
     ctx.closePath();
 };
-var Ship = function (x, y) {
-    var power = null;
-    var p = { x: x, y: y };
-    var v = { x: 0, y: 0 };
-    var r = 0;
-    var points = 0;
-    var timer = 0;
-    var max = 0;
-    this.p = p;
-    this.radius = 15;
-    this.rot = function (x, y) {
+var Ship = (function () {
+    function Ship(x, y) {
+        this.power = null;
+        this.p = { x: x, y: y };
+        this.v = { x: 0, y: 0 };
+        this.r = 0;
+        this.score = 0;
+        this.timer = 0;
+        this.max = 0;
+        this.radius = 15;
+    }
+    Ship.prototype.rot = function (x, y) {
         var cos_angle = Math.cos(this.angle());
         var sin_angle = Math.sin(this.angle());
-        return { x: (x * cos_angle - y * sin_angle) + p.x, y: (x * sin_angle + y * cos_angle) + p.y };
+        return {
+            x: (x * cos_angle - y * sin_angle) + this.p.x,
+            y: (x * sin_angle + y * cos_angle) + this.p.y
+        };
     };
-    this.points = function (p) {
-        points += p;
-        timer += 3;
+    Ship.prototype.points = function (p) {
+        this.score += p;
+        this.timer += 3;
     };
-    this.getVel = function () {
-        return Math.sqrt(Math.pow(v.x, 2) + Math.pow(v.y, 2));
+    Ship.prototype.getVel = function () {
+        return Math.sqrt(Math.pow(this.v.x, 2) + Math.pow(this.v.y, 2));
     };
-    this.setVel = function (pow) {
-        v.x = pow * Math.cos(this.angle());
-        v.y = pow * Math.sin(this.angle());
+    Ship.prototype.setVel = function (pow) {
+        this.v.x = pow * Math.cos(this.angle());
+        this.v.y = pow * Math.sin(this.angle());
     };
-    this.addVel = function (pow) {
-        v.x += pow * Math.cos(this.angle());
-        v.y += pow * Math.sin(this.angle());
+    Ship.prototype.addVel = function (pow) {
+        this.v.x += pow * Math.cos(this.angle());
+        this.v.y += pow * Math.sin(this.angle());
     };
-    this.angle = function () {
-        return TWO_PI / MAX_R * r;
+    Ship.prototype.angle = function () {
+        return TWO_PI / MAX_R * this.r;
     };
-    this.draw = function (ctx) {
+    Ship.prototype.draw = function (ctx) {
         ctx.save();
-        ctx.translate(p.x, p.y);
+        ctx.translate(this.p.x, this.p.y);
         ctx.rotate(this.angle());
         if (up && !down) {
             ctx.save();
@@ -123,8 +127,8 @@ var Ship = function (x, y) {
             ctx.fillStyle = "rgba(256, 236, 80, " + (Random() * 0.5 + 0.5) + ")";
             ctx.fill();
             ctx.restore();
-            var xx = p.x - (Math.cos(this.angle()) * 17);
-            var yy = p.y - (Math.sin(this.angle()) * 17);
+            var xx = this.p.x - (Math.cos(this.angle()) * 17);
+            var yy = this.p.y - (Math.sin(this.angle()) * 17);
             actors.push(new Smoke(xx, yy, Math.cos(this.angle()), Math.sin(this.angle())));
         }
         drawTriangle(ctx);
@@ -148,98 +152,106 @@ var Ship = function (x, y) {
         ctx.stroke();
         ctx.restore();
     };
-    this.left = function () { r = (r - 1) % MAX_R; };
-    this.right = function () { r = (r + 1) % MAX_R; };
-    this.fire = function () {
-        v.x += FIRE * Math.cos(this.angle());
-        v.y += FIRE * Math.sin(this.angle());
+    Ship.prototype.left = function () {
+        this.r = (this.r - 1) % MAX_R;
+    };
+    Ship.prototype.right = function () {
+        this.r = (this.r + 1) % MAX_R;
+    };
+    Ship.prototype.fire = function () {
+        this.v.x += FIRE * Math.cos(this.angle());
+        this.v.y += FIRE * Math.sin(this.angle());
         if (this.getVel() > MAX_SPEED) {
             this.slowdown(GUE_F);
         }
     };
-    this.brake = function () {
-        v.x *= BRAKE;
-        v.y *= BRAKE;
+    Ship.prototype.brake = function () {
+        this.v.x *= BRAKE;
+        this.v.y *= BRAKE;
     };
-    this.slowdown = function (friction) {
-        v.x *= friction;
-        v.y *= friction;
+    Ship.prototype.slowdown = function (friction) {
+        this.v.x *= friction;
+        this.v.y *= friction;
     };
-    this.powerBrake = function (isOn) {
-        if (!isOn && power !== null) {
-            this.addVel(power);
-            power = null;
+    Ship.prototype.powerBrake = function (isOn) {
+        if (!isOn && this.power !== null) {
+            this.addVel(this.power);
+            this.power = null;
             return;
         }
         if (isOn) {
-            if (power === null) {
-                power = 0;
+            if (this.power === null) {
+                this.
+                    power = 0;
             }
             var tmp = this.getVel();
             this.brake();
             tmp -= this.getVel();
-            power += tmp;
+            this.power += tmp;
         }
     };
-    this.tick = function (t, H, W) {
-        p.x += v.x * t;
-        p.y += v.y * t;
-        timer -= tick;
-        if (timer <= 0) {
-            if (points > 0) {
-                if (max >= points)
+    Ship.prototype.tick = function (t, H, W) {
+        this.p.x += this.v.x * t;
+        this.p.y += this.v.y * t;
+        this.timer -= tick;
+        if (this.timer <= 0) {
+            if (this.score > 0) {
+                if (this.max >= this.score)
                     actors.push(new Points(W / 2, H / 2, 'SCORE RESET', 40));
                 else
                     actors.push(new Points(W / 2, H / 2, 'NEW RECORD!!', 50));
-                max = Math.max(max, points);
-                points = 0;
+                this.max = Math.max(this.max, this.score);
+                this.score = 0;
             }
-            timer = 0;
+            this.timer = 0;
         }
         this.bounds(H, W);
     };
-    this.bounds = function (H, W) {
-        if (p.x < 0)
-            p.x = W;
-        if (p.x > W)
-            p.x = 0;
-        if (p.y < 0)
-            p.y = H;
-        if (p.y > H)
-            p.y = 0;
+    Ship.prototype.bounds = function (H, W) {
+        if (this.p.x < 0)
+            this.p.x = W;
+        if (this.p.x > W)
+            this.p.x = 0;
+        if (this.p.y < 0)
+            this.p.y = H;
+        if (this.p.y > H)
+            this.p.y = 0;
     };
-    this.dead = function () {
+    Ship.prototype.dead = function () {
         return false;
     };
-    this.collision = function (s) {
+    Ship.prototype.collision = function (s) {
     };
-    this.toString = function () {
-        var score = 'score: ' + fix(points.toFixed(1), 5) + ' '
-            + (timer > 0 ? 'timeout: ' + timer.toFixed(1) + 's' : '(max: ' + max.toFixed(1) + ')');
+    Ship.prototype.toString = function () {
+        var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
+            + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
         if (!debug)
             return score;
-        var xx = (p.x).toFixed(1);
-        var yy = (p.y).toFixed(1);
+        var xx = (this.p.x).toFixed(1);
+        var yy = (this.p.y).toFixed(1);
         var vv = this.getVel().toFixed(1);
-        var pp = power !== null ? '(' + power.toFixed(1) + ')' : '';
+        var pp = this.power !== null ? '(' + this.power.toFixed(1) + ')' : '';
         return score + ' pos=(' + fix(xx, 6) +
             ', ' + fix(yy, 6) + ') vel=' + fix(vv, 6) + ' ' + pp;
     };
-};
-var CheckPoint = function () {
-    var t = CHECKPOINT_MAX;
-    var x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-    var y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
-    var p = { x: x, y: y };
-    var r = (1 - t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
-    this.dead = function () {
-        return t <= 0;
+    return Ship;
+})();
+var CheckPoint = (function () {
+    function CheckPoint() {
+        this.t = CHECKPOINT_MAX;
+        var x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        var y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        this.p = { x: x, y: y };
+        this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
+    }
+    CheckPoint.prototype.dead = function () {
+        return this.t <= 0;
     };
-    this.draw = function (ctx) {
-        var df = t / CHECKPOINT_MAX;
+    CheckPoint.prototype.draw = function (ctx) {
+        var df = this.t / CHECKPOINT_MAX;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(x, y, r, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, this.r, 0, TWO_PI, false);
         ctx.lineWidth = 3 * (df) + 1;
         ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
             + ',128,' + (df < 0.5 ? (1 - df) : df) + ')';
@@ -249,105 +261,113 @@ var CheckPoint = function () {
         ctx.stroke();
         if (debug) {
             ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
-            var text = t.toFixed(1);
-            ctx.fillText(text, x - ctx.measureText(text).width / 2, y + (FONT_H * 1.5) / 2);
+            var text = this.t.toFixed(1);
+            ctx.fillText(text, this.p.x - ctx.measureText(text).width / 2, this.p.y + (FONT_H * 1.5) / 2);
         }
         ctx.restore();
     };
-    this.tick = function (time) {
+    CheckPoint.prototype.tick = function (time) {
         if (this.dead())
             return;
-        t -= time;
-        r = (1 - t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
+        this.t -= time;
+        this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
         if (this.dead()) {
             actors.push(new CheckPoint());
             var gues = Random() * 4 + 2;
             while (gues-- > 0)
-                actors.push(new Gue(x, y));
+                actors.push(new Gue(this.p.x, this.p.y));
         }
     };
-    this.collision = function (s) {
-        if (collides(s, p, r)) {
-            var val = t * 10;
+    CheckPoint.prototype.collision = function (s) {
+        if (collides(s, this.p, this.r)) {
+            var val = this.t * 10;
             s.points(val);
-            t = 0;
+            this.t = 0;
             var sp = Random() * 10 + 10;
             while (sp-- > 0)
-                actors.push(new Spark(x, y, Random() * TWO_PI));
+                actors.push(new Spark(this.p.x, this.p.y, Random() * TWO_PI));
             actors.push(new CheckPoint());
-            actors.push(new Points(x, y, ('+' + val.toFixed(1) + '!')));
+            actors.push(new Points(this.p.x, this.p.y, ('+' + val.toFixed(1) + '!')));
         }
     };
-};
-var Smoke = function (x, y, vx, vy) {
-    var c = SMOKE_COLOR[Math.floor(Random() * SMOKE_COLOR.length)];
-    var p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
-    var v = { x: (Random() * 10 + 5) * vx, y: (Random() * 10 + 5) * vy };
-    var t = SMOKE_MAX;
-    this.dead = function () {
-        return t <= 0;
+    return CheckPoint;
+})();
+var Smoke = (function () {
+    function Smoke(x, y, vx, vy) {
+        this.c = SMOKE_COLOR[Math.floor(Random() * SMOKE_COLOR.length)];
+        this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
+        this.v = { x: (Random() * 10 + 5) * vx, y: (Random() * 10 + 5) * vy };
+        this.t = SMOKE_MAX;
+    }
+    Smoke.prototype.dead = function () {
+        return this.t <= 0;
     };
-    this.draw = function (ctx) {
-        var df = (t / SMOKE_MAX);
+    Smoke.prototype.draw = function (ctx) {
+        var df = (this.t / SMOKE_MAX);
         var size = 15 - 12 * df;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, size, 0, TWO_PI, false);
-        ctx.fillStyle = c + (df + 0.01) + ')';
+        ctx.arc(this.p.x, this.p.y, size, 0, TWO_PI, false);
+        ctx.fillStyle = this.c + (df + 0.01) + ')';
         ctx.fill();
         ctx.closePath();
         ctx.restore();
     };
-    this.tick = function (time) {
-        t -= time;
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= SMOKE_F;
-        v.y *= SMOKE_F;
+    Smoke.prototype.tick = function (time) {
+        this.t -= time;
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= SMOKE_F;
+        this.v.y *= SMOKE_F;
     };
-    this.collision = function (s) {
+    Smoke.prototype.collision = function (s) {
     };
-};
-var Gue = function (x, y) {
-    var angle = TWO_PI * Random();
-    var size = Random() * 20 + 30;
-    var speed = Random() * 20;
-    var p = { x: x, y: y };
-    var v = { x: Math.cos(angle) * speed, y: Math.sin(angle) * speed };
-    var t = GUE_MAX;
-    var s = size - 10 * (t / GUE_MAX);
-    this.dead = function () {
-        return t <= 0;
+    return Smoke;
+})();
+var Gue = (function () {
+    function Gue(x, y) {
+        this.angle = TWO_PI * Random();
+        this.size = Random() * 20 + 30;
+        this.speed = Random() * 20;
+        this.p = { x: x, y: y };
+        this.v = { x: Math.cos(this.angle) * this.speed, y: Math.sin(this.angle) * this.speed };
+        this.t = GUE_MAX;
+        this.s = this.size - 10 * (this.t / GUE_MAX);
+    }
+    Gue.prototype.dead = function () {
+        return this.t <= 0;
     };
-    this.draw = function (ctx) {
-        var df = t / GUE_MAX;
+    Gue.prototype.draw = function (ctx) {
+        var df = this.t / GUE_MAX;
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, s, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, this.s, 0, TWO_PI, false);
         ctx.fillStyle = GUE_COLOR + df + ')';
         ctx.fill();
         ctx.closePath();
         ctx.restore();
     };
-    this.tick = function (time) {
-        t -= time;
-        s = size - 10 * (t / GUE_MAX);
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= GUE_F;
-        v.y *= GUE_F;
+    Gue.prototype.tick = function (time) {
+        this.t -= time;
+        this.s = this.size - 10 * (this.t / GUE_MAX);
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= GUE_F;
+        this.v.y *= GUE_F;
     };
-    this.collision = function (ship) {
-        if (collides(ship, p, s)) {
-            ship.slowdown(0.8 + (1 - 0.8) * (1 - t / GUE_MAX));
+    Gue.prototype.collision = function (ship) {
+        if (collides(ship, this.p, this.s)) {
+            ship.slowdown(0.8 + (1 - 0.8) * (1 - this.t / GUE_MAX));
         }
     };
-};
+    return Gue;
+})();
 var Points = (function () {
     function Points(x, y, val, s) {
         this.x = x;
         this.y = y;
         this.val = val;
+        this.s = s;
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
