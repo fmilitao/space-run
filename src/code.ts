@@ -483,21 +483,32 @@ var Points = function(x, y, val, s?: any) {
     };
 };
 
-var Spark = function(x, y, angle) {
-    var p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
-    var v = { x: Math.cos(angle) * 12, y: Math.sin(angle) * 12 };
-    var t = SPARK_T;
+interface PosXY {
+    x: number;
+    y: number;
+}
 
-    this.dead = function() {
-        return t <= 0;
+class Spark {
+    protected p: PosXY;
+    protected v: PosXY;
+    protected t: number;
+
+    constructor(x: number, y: number, angle: number) {
+        this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
+        this.v = { x: Math.cos(angle) * 12, y: Math.sin(angle) * 12 };
+        this.t = SPARK_T;
     }
 
-    this.draw = function(ctx) {
-        var df = (t / SPARK_T);
+    dead() {
+        return this.t <= 0;
+    }
+
+    draw(ctx : CanvasRenderingContext2D) {
+        const df = (this.t / SPARK_T);
 
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, SPARK_SIZE, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, SPARK_SIZE, 0, TWO_PI, false);
         ctx.closePath();
 
         ctx.lineWidth = 2;
@@ -506,17 +517,17 @@ var Spark = function(x, y, angle) {
         ctx.fill();
         ctx.stroke();
         ctx.restore();
-    };
+    }
 
-    this.tick = function(time) {
-        t -= time;
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= SPARK_F;
-        v.y *= SPARK_F;
-    };
+    tick(time : number) {
+        this.t -= time;
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= SPARK_F;
+        this.v.y *= SPARK_F;
+    }
 
-    this.collision = function(s) {
+    collision(s) {
         // never collides
-    };
-};
+    }
+}

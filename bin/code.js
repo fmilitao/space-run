@@ -366,18 +366,20 @@ var Points = function (x, y, val, s) {
     this.collision = function (s) {
     };
 };
-var Spark = function (x, y, angle) {
-    var p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
-    var v = { x: Math.cos(angle) * 12, y: Math.sin(angle) * 12 };
-    var t = SPARK_T;
-    this.dead = function () {
-        return t <= 0;
+var Spark = (function () {
+    function Spark(x, y, angle) {
+        this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
+        this.v = { x: Math.cos(angle) * 12, y: Math.sin(angle) * 12 };
+        this.t = SPARK_T;
+    }
+    Spark.prototype.dead = function () {
+        return this.t <= 0;
     };
-    this.draw = function (ctx) {
-        var df = (t / SPARK_T);
+    Spark.prototype.draw = function (ctx) {
+        var df = (this.t / SPARK_T);
         ctx.save();
         ctx.beginPath();
-        ctx.arc(p.x, p.y, SPARK_SIZE, 0, TWO_PI, false);
+        ctx.arc(this.p.x, this.p.y, SPARK_SIZE, 0, TWO_PI, false);
         ctx.closePath();
         ctx.lineWidth = 2;
         ctx.strokeStyle = 'rgba(255,255,255,0.2)';
@@ -386,13 +388,14 @@ var Spark = function (x, y, angle) {
         ctx.stroke();
         ctx.restore();
     };
-    this.tick = function (time) {
-        t -= time;
-        p.x += v.x * time;
-        p.y += v.y * time;
-        v.x *= SPARK_F;
-        v.y *= SPARK_F;
+    Spark.prototype.tick = function (time) {
+        this.t -= time;
+        this.p.x += this.v.x * time;
+        this.p.y += this.v.y * time;
+        this.v.x *= SPARK_F;
+        this.v.y *= SPARK_F;
     };
-    this.collision = function (s) {
+    Spark.prototype.collision = function (s) {
     };
-};
+    return Spark;
+})();
