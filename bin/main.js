@@ -3,14 +3,16 @@
  */
 var keys = [];
 var keyControl = function (key, down) { keys[key] = down; };
-var funkU = function (e) {
+function funkU(e) {
     keyControl(e.keyCode, false);
     if (pause || (!pause && e.keyCode === 80))
         pause = !pause;
-};
-var funkD = function (e) {
+}
+;
+function funkD(e) {
     keyControl(e.keyCode, true);
-};
+}
+;
 window.addEventListener("keyup", funkU, true);
 window.addEventListener("keydown", funkD, true);
 var left = false;
@@ -58,7 +60,7 @@ if (parameters.length > 1) {
 ctx.canvas.width = W;
 ctx.canvas.height = H;
 var ship = new Ship(W / 2, H / 2);
-var actions = function () {
+function actions() {
     checkKeys();
     if (left)
         ship.left();
@@ -73,14 +75,14 @@ var actions = function () {
         if (down)
             ship.brake();
     }
-};
+}
 var actors = [];
 actors.push(ship);
 var cp = 3;
 while (cp-- > 0)
     actors.push(new CheckPoint());
 var background = null;
-var clearBackground = function (ctx) {
+function clearBackground(ctx) {
     if (background !== null) {
         ctx.putImageData(background, 0, 0);
     }
@@ -100,7 +102,7 @@ var clearBackground = function (ctx) {
         }
         background = ctx.getImageData(0, 0, W, H);
     }
-};
+}
 var FONT_H = 8;
 var FONT_HEIGHT = FONT_H * 1.5 + 4;
 ctx.font = FONT_H + 'pt testFont';
@@ -119,7 +121,7 @@ var msg = [
     '      Brake: s OR space OR <down arrow>   ',
     "Power-Brake: hold 'fire engines' & 'brake'"
 ];
-var drawPaused = function () {
+function drawPaused() {
     clearBackground(ctx);
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0, 0, W, H);
@@ -129,8 +131,8 @@ var drawPaused = function () {
         var txt = msg[i];
         ctx.fillText(txt, (W / 2) - (ctx.measureText(txt).width / 2), (H / 2 - (FONT_HEIGHT * msg.length / 2)) + (FONT_HEIGHT * i));
     }
-};
-var draw = function () {
+}
+function draw() {
     clearBackground(ctx);
     for (var i = 0; i < actors.length; ++i) {
         actors[i].draw(ctx);
@@ -143,7 +145,8 @@ var draw = function () {
     var txt = ship.toString();
     ctx.fillText(txt, 4, FONT_H * 1.5 + 2);
     ctx.restore();
-};
+}
+;
 var fps = 30;
 var interval = 1000 / fps;
 var time = 1 / 20;

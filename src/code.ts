@@ -1,31 +1,31 @@
 
-var PI = Math.PI;
-var TWO_PI = 2*Math.PI;
-var Random = Math.random;
-
 // CONSTANTS
-var MAX_R = 32;
-var MAX_POWER = 150;
-var MAX_SPEED = 250;
-var FIRE = 5;
-var BRAKE = 0.9;
+const PI = Math.PI;
+const TWO_PI = 2*Math.PI;
+const Random = Math.random;
 
-var SMOKE_COLOR = ['rgba(37,37,37,','rgba(21,21,21,'];
-var SMOKE_F = 0.99;
-var SMOKE_MAX = 5;
+const MAX_R = 32;
+const MAX_POWER = 150;
+const MAX_SPEED = 250;
+const FIRE = 5;
+const BRAKE = 0.9;
 
-var GUE_F = 0.98;
-var GUE_MAX = 30;
-var GUE_COLOR = 'rgba(0,255,0,';
+const SMOKE_COLOR = ['rgba(37,37,37,','rgba(21,21,21,'];
+const SMOKE_F = 0.99;
+const SMOKE_MAX = 5;
 
-var CHECKPOINT_MAX = 9.99;
-var CHECKPOINT_R = 30;
+const GUE_F = 0.98;
+const GUE_MAX = 30;
+const GUE_COLOR = 'rgba(0,255,0,';
 
-var SPARK_T = 3;
-var SPARK_F = 0.99;
-var SPARK_SIZE = 1;
+const CHECKPOINT_MAX = 9.99;
+const CHECKPOINT_R = 30;
 
-var POINTS_MAX = 3;
+const SPARK_T = 3;
+const SPARK_F = 0.99;
+const SPARK_SIZE = 1;
+
+const POINTS_MAX = 3;
 
 /*
  * Utils

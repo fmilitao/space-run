@@ -4,16 +4,17 @@
 
 // multiple keys must be tracked individually or it will mess up control
 var keys = [];
-var keyControl = function(key, down) { keys[key] = down; };
+var keyControl = (key, down) => { keys[key] = down; };
 
-var funkU = function(e) {
-		keyControl(e.keyCode, false);
-		if( pause ||  (!pause && e.keyCode === 80) ) // 'p' key
-			pause = !pause;
-	};
-var funkD = function(e) {
-		keyControl(e.keyCode, true);
-	};
+function funkU(e) {
+	keyControl(e.keyCode, false);
+	if( pause ||  (!pause && e.keyCode === 80) ) // 'p' key
+		pause = !pause;
+};
+
+function funkD(e) {
+	keyControl(e.keyCode, true);
+};
 
 window.addEventListener("keyup", funkU, true);
 window.addEventListener("keydown", funkD, true);
@@ -38,7 +39,7 @@ var checkKeys = function() {
  * CANVAS SETUP
  */
 
-var canvas : any = document.getElementById("canvas");
+var canvas = <HTMLCanvasElement> document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
 var W = window.innerWidth-4;
@@ -81,7 +82,7 @@ ctx.canvas.height = H;
 
 var ship = new Ship( W/2, H/2 );
 
-var actions = function() {
+function actions() {
 	checkKeys();
 	if(left)
 		ship.left();
@@ -108,7 +109,7 @@ while( cp-- > 0 )
 	actors.push( new CheckPoint( ) );
 
 var background = null;
-var clearBackground = function(ctx){
+function clearBackground(ctx){
 	if( background !== null ){
 		ctx.putImageData(background,0,0);
 	}else{
@@ -131,11 +132,11 @@ var clearBackground = function(ctx){
 	}
 }
 
-var FONT_H = 8;
-var FONT_HEIGHT = FONT_H*1.5+4;
+const FONT_H = 8;
+const FONT_HEIGHT = FONT_H*1.5+4;
 ctx.font = FONT_H+'pt testFont';
 
-var msg = [
+const msg = [
 	'-- Game Paused --',
 	'Press any key to continue.',
 	'',
@@ -151,7 +152,7 @@ var msg = [
 	"Power-Brake: hold 'fire engines' & 'brake'"
 ];
 
-var drawPaused = function(){
+function drawPaused(){
 	clearBackground(ctx);
 
 	ctx.fillStyle = "rgba(0,0,0,0.5)";
@@ -168,7 +169,7 @@ var drawPaused = function(){
 	}
 }
 
-var draw = function() {
+function draw() {
 
 	clearBackground(ctx);
 
@@ -192,10 +193,10 @@ var draw = function() {
 };
 
 // animation intervals
-var fps = 30;
-var interval = 1000 / fps;
-var time = 1/20;
-var tick = 1/30;
+const fps = 30;
+const interval = 1000 / fps;
+const time = 1/20;
+const tick = 1/30;
 
 setInterval(function(){
 	actions();
@@ -207,7 +208,7 @@ setInterval(function(){
 		return;
 	}
 
-	var tmp = actors;
+	const tmp = actors;
 	actors = [];
 
 	for( var i=0; i<tmp.length; ++i ){
