@@ -107,6 +107,18 @@ var drawTriangle = function(ctx) {
  * Actors
  */
 
+
+interface PosXY {
+    x: number;
+    y: number;
+}
+
+interface Actor {
+    dead(): boolean;
+    tick(time: number): void;
+    draw(ctx: CanvasRenderingContext2D): void;
+}
+
 var Ship = function(x, y) {
 
     var power = null;
@@ -451,44 +463,50 @@ var Gue = function(x, y) {
 
 };
 
-var Points = function(x, y, val, s?: any) {
-    var p = { x: x, y: y };
-    var t = POINTS_MAX;
-    if (s === undefined)
-        s = FONT_H;
+class Points implements Actor {
+    protected p: PosXY;
+    protected t: number;
+    protected s: number;
 
-    this.dead = function() {
-        return t <= 0;
+    constructor(
+        protected x: number,
+        protected y: number,
+        protected val: string,
+        s?: number) {
+        this.p = { x: x, y: y };
+        this.t = POINTS_MAX;
+        if (s === undefined)
+            this.s = FONT_H;
     }
 
-    this.draw = function(ctx) {
-        var df = (t / POINTS_MAX);
+    dead() {
+        return this.t <= 0;
+    }
+
+    draw(ctx : CanvasRenderingContext2D) {
+        const df = (this.t / POINTS_MAX);
 
         ctx.save();
         ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
-        var text = val;
-        ctx.font = s + 'pt testFont';
+        const text = this.val;
+        ctx.font = this.s + 'pt testFont';
         ctx.fillText(text,
-            x - ctx.measureText(text).width / 2,
-            y + (FONT_H * 1.5) / 2);
+            this.x - ctx.measureText(text).width / 2,
+            this.y + (FONT_H * 1.5) / 2);
         ctx.restore();
-    };
+    }
 
-    this.tick = function(time) {
-        t -= time;
-    };
+    tick(time: number) {
+        this.t -= time;
+    }
 
-    this.collision = function(s) {
+    collision(s) {
         // never collides
-    };
-};
-
-interface PosXY {
-    x: number;
-    y: number;
+    }
 }
 
-class Spark {
+
+class Spark implements Actor {
     protected p: PosXY;
     protected v: PosXY;
     protected t: number;

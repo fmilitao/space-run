@@ -343,29 +343,35 @@ var Gue = function (x, y) {
         }
     };
 };
-var Points = function (x, y, val, s) {
-    var p = { x: x, y: y };
-    var t = POINTS_MAX;
-    if (s === undefined)
-        s = FONT_H;
-    this.dead = function () {
-        return t <= 0;
+var Points = (function () {
+    function Points(x, y, val, s) {
+        this.x = x;
+        this.y = y;
+        this.val = val;
+        this.p = { x: x, y: y };
+        this.t = POINTS_MAX;
+        if (s === undefined)
+            this.s = FONT_H;
+    }
+    Points.prototype.dead = function () {
+        return this.t <= 0;
     };
-    this.draw = function (ctx) {
-        var df = (t / POINTS_MAX);
+    Points.prototype.draw = function (ctx) {
+        var df = (this.t / POINTS_MAX);
         ctx.save();
         ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
-        var text = val;
-        ctx.font = s + 'pt testFont';
-        ctx.fillText(text, x - ctx.measureText(text).width / 2, y + (FONT_H * 1.5) / 2);
+        var text = this.val;
+        ctx.font = this.s + 'pt testFont';
+        ctx.fillText(text, this.x - ctx.measureText(text).width / 2, this.y + (FONT_H * 1.5) / 2);
         ctx.restore();
     };
-    this.tick = function (time) {
-        t -= time;
+    Points.prototype.tick = function (time) {
+        this.t -= time;
     };
-    this.collision = function (s) {
+    Points.prototype.collision = function (s) {
     };
-};
+    return Points;
+})();
 var Spark = (function () {
     function Spark(x, y, angle) {
         this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
