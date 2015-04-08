@@ -2,23 +2,40 @@
  * KEYS
  */
 
+// http://stackoverflow.com/questions/1465374/javascript-event-keycode-constants
 // multiple keys must be tracked individually or it will mess up control
 var keys = [];
 var keyControl = (key, down) => { keys[key] = down; };
 
-function keyUp(e) {
+// virtual keys that matter to us.
+enum VK {
+  W = 87,
+  A = 65,
+  S = 83,
+  D = 68,
+  P = 80,
+  LEFT = 37,
+  RIGHT = 39,
+  UP = 38,
+  DOWN = 40,
+  SPACE = 32
+};
+
+function keyUp(e : KeyboardEvent) {
     keyControl(e.keyCode, false);
-    if (pause || (!pause && e.keyCode === 80)) // 80 is 'p' key code
+    // any key if paused or  'p' (80) key code if not paused.
+    if (pause || (!pause && e.keyCode === VK.P))
         pause = !pause;
 };
 
-function keyDown(e) {
+function keyDown(e : KeyboardEvent) {
     keyControl(e.keyCode, true);
 };
 
 window.addEventListener("keyup", keyUp, true);
 window.addEventListener("keydown", keyDown, true);
 
+// these are OK to export.
 var left = false;
 var right = false;
 var up = false;
@@ -28,12 +45,22 @@ var pause = true;
 var debug = false;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
-var checkKeys = function() {
+var checkKeys = function() { // FIXME: this should be merged with listeners too?
     left = keys[37] || keys[65]; // left, 'a'
     right = keys[39] || keys[68]; // right, 'd'
     up = keys[38] || keys[87]; // up, 'w'
     down = keys[40] || keys[83] || keys[32]; // down, 's', space
 };
+
+/*
+module Test {
+  export var t = 0;
+}
+
+import ttt = Test.t;
+
+console.log( ttt + 0 );
+*/
 
 /*
  * CANVAS SETUP
@@ -196,7 +223,7 @@ function draw() {
 const fps = 30;
 const interval = 1000 / fps;
 const time = 1 / 20;
-const tick = 1 / 30;
+const tick = 1 / 30; // FIXME why this??
 
 setInterval(function() {
     actions();

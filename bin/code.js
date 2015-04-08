@@ -31,7 +31,7 @@ var collides = function (ship, p, r) {
         inters(p1, p2, p, r) ||
         inters(p2, p0, p, r);
 };
-var inters = function (p0, p1, c, cw) {
+function inters(p0, p1, c, cw) {
     var x0 = c.x;
     var y0 = c.y;
     var x1 = p0.x;
@@ -50,14 +50,16 @@ var inters = function (p0, p1, c, cw) {
     if ((d2 - cw) > d)
         return false;
     return true;
-};
-var fix = function (str, length) {
+}
+;
+function fix(str, length) {
     var tmp = str;
     while (tmp.length < length) {
         tmp = ' ' + tmp;
     }
     return tmp;
-};
+}
+;
 var drawMissile = function (ctx) {
     ctx.beginPath();
     ctx.moveTo(-4, -4);

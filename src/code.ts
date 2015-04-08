@@ -39,7 +39,7 @@ var collides = function(ship, p, r) {
     if (xx * xx + yy * yy > rr * rr)
         return false;
 
-    var p0 = ship.rot(5, -5);
+    var p0 = ship.rot(5, -5); // FIXME: this is bad style
     var p1 = ship.rot(-5, 5);
     var p2 = ship.rot(15, 0);
 
@@ -48,34 +48,33 @@ var collides = function(ship, p, r) {
         inters(p2, p0, p, r);
 }
 
-// FIXME : this or not
-//http://www.gamedev.net/community/forums/topic.asp?topic_id=304578
-var inters = function(p0, p1, c, cw) {
-    var x0 = c.x;
-    var y0 = c.y;
-    var x1 = p0.x;
-    var y1 = p0.y;
-    var x2 = p1.x;
-    var y2 = p1.y;
+// from: http://www.gamedev.net/community/forums/topic.asp?topic_id=304578
+function inters(p0 : PosXY, p1 : PosXY, c : PosXY, cw : number) {
+    const x0 = c.x;
+    const y0 = c.y;
+    const x1 = p0.x;
+    const y1 = p0.y;
+    const x2 = p1.x;
+    const y2 = p1.y;
 
-    var n = Math.abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1));
-    var d = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    var dist = n / d;
+    const n = Math.abs((x2 - x1) * (y1 - y0) - (x1 - x0) * (y2 - y1));
+    const d = Math.sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
+    const dist = n / d;
     if (dist > cw)
         return false;
 
-    var d1 = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
+    const d1 = Math.sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1));
     if ((d1 - cw) > d)
         return false;
 
-    var d2 = Math.sqrt(Math.pow(x0 - x2, 2) + Math.pow(y0 - y2, 2));
+    const d2 = Math.sqrt(Math.pow(x0 - x2, 2) + Math.pow(y0 - y2, 2));
     if ((d2 - cw) > d)
         return false;
 
     return true;
-}
+};
 
-var fix = function(str, length) {
+function fix(str, length) {
     var tmp = str;
     while (tmp.length < length) {
         tmp = ' ' + tmp;
@@ -122,7 +121,7 @@ interface Actor {
 
 class Ship implements Actor {
 
-    protected power: number;
+    protected power: number; // nullable
     protected p: PosXY;
     protected v: PosXY;
     protected r: number;
@@ -282,7 +281,7 @@ class Ship implements Actor {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
 
-        this.timer -= tick;
+        this.timer -= tick; // FIXME: why not using 't' ??
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)
@@ -298,7 +297,7 @@ class Ship implements Actor {
         this.bounds(H, W);
     }
 
-    bounds(H: number, W: number) {
+    bounds(H: number, W: number) { // FIXME bad style
         if (this.p.x < 0) this.p.x = W;
         if (this.p.x > W) this.p.x = 0;
 

@@ -5,6 +5,7 @@
         "declaration": false,
         "noImplicitAny": false,
         "removeComments": true,
+        "preserveConstEnums": false,
         "noLib": false,
         "outDir": "./bin"
     },

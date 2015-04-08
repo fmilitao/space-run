@@ -3,9 +3,23 @@
  */
 var keys = [];
 var keyControl = function (key, down) { keys[key] = down; };
+var VK;
+(function (VK) {
+    VK[VK["W"] = 87] = "W";
+    VK[VK["A"] = 65] = "A";
+    VK[VK["S"] = 83] = "S";
+    VK[VK["D"] = 68] = "D";
+    VK[VK["P"] = 80] = "P";
+    VK[VK["LEFT"] = 37] = "LEFT";
+    VK[VK["RIGHT"] = 39] = "RIGHT";
+    VK[VK["UP"] = 38] = "UP";
+    VK[VK["DOWN"] = 40] = "DOWN";
+    VK[VK["SPACE"] = 32] = "SPACE";
+})(VK || (VK = {}));
+;
 function keyUp(e) {
     keyControl(e.keyCode, false);
-    if (pause || (!pause && e.keyCode === 80))
+    if (pause || (!pause && e.keyCode === VK.P))
         pause = !pause;
 }
 ;
