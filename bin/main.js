@@ -35,12 +35,13 @@ var up = false;
 var down = false;
 var pause = true;
 var debug = false;
-var checkKeys = function () {
+function checkKeys() {
     left = keys[37] || keys[65];
     right = keys[39] || keys[68];
     up = keys[38] || keys[87];
     down = keys[40] || keys[83] || keys[32];
-};
+}
+;
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var W = window.innerWidth - 4;
@@ -166,8 +167,7 @@ function draw() {
 ;
 var fps = 30;
 var interval = 1000 / fps;
-var time = 1 / 20;
-var tick = 1 / 30;
+var tick = 1 / fps;
 setInterval(function () {
     actions();
     draw();
@@ -175,14 +175,16 @@ setInterval(function () {
         drawPaused();
         return;
     }
-    var tmp = actors;
+    var old = actors;
     actors = [];
-    for (var i = 0; i < tmp.length; ++i) {
-        tmp[i].collision(ship);
+    for (var _i = 0; _i < old.length; _i++) {
+        var a = old[_i];
+        a.collision(ship);
     }
-    for (var i = 0; i < tmp.length; ++i) {
-        tmp[i].tick(time, H, W);
-        if (!tmp[i].dead())
-            actors.push(tmp[i]);
+    for (var _a = 0; _a < old.length; _a++) {
+        var a = old[_a];
+        a.tick(tick, H, W);
+        if (!a.dead())
+            actors.push(a);
     }
 }, interval);

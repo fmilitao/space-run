@@ -45,7 +45,9 @@ var pause = true;
 var debug = false;
 
 // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
-var checkKeys = function() { // FIXME: this should be merged with listeners too?
+// we do not check keys on each key stroke and instead use this separate function
+// to enable synchronous checks and avoid potential key-pressed changes mid-frame.
+function checkKeys() {
     left = keys[37] || keys[65]; // left, 'a'
     right = keys[39] || keys[68]; // right, 'd'
     up = keys[38] || keys[87]; // up, 'w'
@@ -72,6 +74,7 @@ const ctx = canvas.getContext("2d");
 var W = window.innerWidth - 4;
 var H = window.innerHeight - 4;
 
+//TODO add these options to the README.md file.
 // override default canvas size
 let parameters = document.URL.split('?');
 if (parameters.length > 1) {
@@ -140,7 +143,7 @@ function clearBackground(ctx : CanvasRenderingContext2D) {
     if (background !== null) {
         ctx.putImageData(background, 0, 0);
     } else {
-        // draws background and stores it for later
+        // draws background once, and stores it for later
         ctx.fillStyle = "#222244";
         ctx.fillRect(0, 0, W, H);
         for (let i = 0; i < 150; ++i) {
@@ -221,9 +224,8 @@ function draw() {
 
 // animation intervals
 const fps = 30;
-const interval = 1000 / fps;
-const time = 1 / 20;
-const tick = 1 / 30; // FIXME why this??
+const interval = 1000 / fps; // milliseconds
+const tick = 1 / fps; // seconds
 
 setInterval(function() {
     actions();
@@ -235,17 +237,17 @@ setInterval(function() {
         return;
     }
 
-    const tmp : Actor[] = actors;
-    actors = [];
+    const old: Actor[] = actors;
+    actors = []; // next frame will have new set of actors
 
-    for (let i = 0; i < tmp.length; ++i) {
-        tmp[i].collision(ship);
+    for (let a of old) {
+        a.collision(ship);
     }
 
-    for (let i = 0; i < tmp.length; ++i) {
-        tmp[i].tick(time, H, W);
-        if (!tmp[i].dead())
-            actors.push(tmp[i]);
+    for (let a of old) {
+        a.tick(tick, H, W);
+        if (!a.dead())
+            actors.push(a);
     }
 
 }, interval);

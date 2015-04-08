@@ -60,24 +60,21 @@ function fix(str, length) {
     return tmp;
 }
 ;
-var drawMissile = function (ctx) {
+var triangle = [[-5, -5], [-5, 5], [15, 0]];
+var missile = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
+function drawPath(ctx, path) {
     ctx.beginPath();
-    ctx.moveTo(-4, -4);
-    ctx.lineTo(-4, 4);
-    ctx.lineTo(8, 4);
-    ctx.lineTo(12, 0);
-    ctx.lineTo(8, -4);
+    var _a = path[0], x = _a[0], y = _a[1];
+    ctx.moveTo(x, y);
+    for (var i = 0; i < path.length; ++i) {
+        _b = path[i], x = _b[0], y = _b[1];
+        ctx.lineTo(x, y);
+    }
     ctx.lineJoin = 'miter';
     ctx.closePath();
-};
-var drawTriangle = function (ctx) {
-    ctx.beginPath();
-    ctx.moveTo(-5, -5);
-    ctx.lineTo(-5, 5);
-    ctx.lineTo(15, 0);
-    ctx.lineJoin = 'miter';
-    ctx.closePath();
-};
+    var _b;
+}
+;
 var Ship = (function () {
     function Ship(x, y) {
         this.power = null;
@@ -133,7 +130,7 @@ var Ship = (function () {
             var yy = this.p.y - (Math.sin(this.angle()) * 17);
             actors.push(new Smoke(xx, yy, Math.cos(this.angle()), Math.sin(this.angle())));
         }
-        drawTriangle(ctx);
+        drawPath(ctx, triangle);
         ctx.fillStyle = '#ff2020';
         ctx.fill();
         if (up && down) {
@@ -195,7 +192,7 @@ var Ship = (function () {
     Ship.prototype.tick = function (t, H, W) {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
-        this.timer -= tick;
+        this.timer -= t;
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)

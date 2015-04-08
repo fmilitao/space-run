@@ -82,22 +82,20 @@ function fix(str, length) {
     return tmp;
 };
 
-var drawMissile = function(ctx: CanvasRenderingContext2D) {
-    ctx.beginPath();
-    ctx.moveTo(-4, -4);
-    ctx.lineTo(-4, 4);
-    ctx.lineTo(8, 4);
-    ctx.lineTo(12, 0);
-    ctx.lineTo(8, -4);
-    ctx.lineJoin = 'miter';
-    ctx.closePath();
-};
+let triangle = [[-5, -5], [-5, 5], [15, 0]];
+let missile = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
 
-var drawTriangle = function(ctx: CanvasRenderingContext2D) {
+// each entry of 'path' should contain a pair of numbers (x,y).
+function drawPath(ctx: CanvasRenderingContext2D, path : number[][]) {
     ctx.beginPath();
-    ctx.moveTo(-5, -5);
-    ctx.lineTo(-5, 5);
-    ctx.lineTo(15, 0);
+    let [x,y] = path[0];
+    ctx.moveTo(x, y);
+
+    for( let i=0; i<path.length; ++i ){
+      [x,y] = path[i];
+      ctx.lineTo(x, y);
+    }
+
     ctx.lineJoin = 'miter';
     ctx.closePath();
 };
@@ -202,7 +200,7 @@ class Ship implements Actor {
 
         }
 
-        drawTriangle(ctx);
+        drawPath(ctx, triangle);
 
         ctx.fillStyle = '#ff2020';
         ctx.fill();
@@ -281,7 +279,7 @@ class Ship implements Actor {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
 
-        this.timer -= tick; // FIXME: why not using 't' ??
+        this.timer -= t;
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)
