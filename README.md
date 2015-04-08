@@ -7,7 +7,7 @@ _Note:_ This idea does not work all that well as implemented...
 
 ##Play##
 
-[Latest Version](https://waste-of-time.googlecode.com/git/index.html)
+[Latest Version BROKEN FOR NOW](???)
 
 **Controls**:
   * Rotate left: `a` or &#8592;
