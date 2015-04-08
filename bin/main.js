@@ -1,51 +1,55 @@
-/*
- * KEYS
- */
-var keys = [];
-var keyControl = function (key, down) { keys[key] = down; };
-var VK;
-(function (VK) {
-    VK[VK["W"] = 87] = "W";
-    VK[VK["A"] = 65] = "A";
-    VK[VK["S"] = 83] = "S";
-    VK[VK["D"] = 68] = "D";
-    VK[VK["P"] = 80] = "P";
-    VK[VK["LEFT"] = 37] = "LEFT";
-    VK[VK["RIGHT"] = 39] = "RIGHT";
-    VK[VK["UP"] = 38] = "UP";
-    VK[VK["DOWN"] = 40] = "DOWN";
-    VK[VK["SPACE"] = 32] = "SPACE";
-})(VK || (VK = {}));
-;
-function keyUp(e) {
-    keyControl(e.keyCode, false);
-    if (pause || (!pause && e.keyCode === VK.P))
-        pause = !pause;
-}
-;
-function keyDown(e) {
-    keyControl(e.keyCode, true);
-}
-;
-window.addEventListener("keyup", keyUp, true);
-window.addEventListener("keydown", keyDown, true);
-var left = false;
-var right = false;
-var up = false;
-var down = false;
-var pause = true;
-var debug = false;
-function checkKeys() {
-    left = keys[37] || keys[65];
-    right = keys[39] || keys[68];
-    up = keys[38] || keys[87];
-    down = keys[40] || keys[83] || keys[32];
-}
+var Control;
+(function (Control) {
+    var VK;
+    (function (VK) {
+        VK[VK["W"] = 87] = "W";
+        VK[VK["A"] = 65] = "A";
+        VK[VK["S"] = 83] = "S";
+        VK[VK["D"] = 68] = "D";
+        VK[VK["P"] = 80] = "P";
+        VK[VK["LEFT"] = 37] = "LEFT";
+        VK[VK["RIGHT"] = 39] = "RIGHT";
+        VK[VK["UP"] = 38] = "UP";
+        VK[VK["DOWN"] = 40] = "DOWN";
+        VK[VK["SPACE"] = 32] = "SPACE";
+    })(VK || (VK = {}));
+    ;
+    var keys = [];
+    var keyControl = function (key, down) { keys[key] = down; };
+    var pause = true;
+    function keyUp(e) {
+        keyControl(e.keyCode, false);
+        if (pause || (!pause && e.keyCode === VK.P)) {
+            pause = !pause;
+            toggleMode(pause);
+        }
+    }
+    ;
+    function keyDown(e) {
+        keyControl(e.keyCode, true);
+    }
+    ;
+    window.addEventListener("keyup", keyUp, true);
+    window.addEventListener("keydown", keyDown, true);
+    Control.left = false;
+    Control.right = false;
+    Control.up = false;
+    Control.down = false;
+    function checkKeys() {
+        Control.left = keys[VK.LEFT] || keys[VK.A];
+        Control.right = keys[VK.RIGHT] || keys[VK.D];
+        Control.up = keys[VK.UP] || keys[VK.W];
+        Control.down = keys[VK.DOWN] || keys[VK.S] || keys[VK.SPACE];
+    }
+    Control.checkKeys = checkKeys;
+    ;
+})(Control || (Control = {}));
 ;
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var W = window.innerWidth - 4;
 var H = window.innerHeight - 4;
+var debug = false;
 var parameters = document.URL.split('?');
 if (parameters.length > 1) {
     parameters = parameters[1].split('&');
@@ -61,8 +65,6 @@ if (parameters.length > 1) {
                 case 'h':
                     H = parseInt(value);
                     break;
-                case 'p':
-                    pause = (value.toLowerCase() === 'true');
                 case 'd':
                 case 'debug':
                     debug = (value.toLowerCase() === 'true');
@@ -76,18 +78,18 @@ ctx.canvas.width = W;
 ctx.canvas.height = H;
 var ship = new Ship(W / 2, H / 2);
 function actions() {
-    checkKeys();
-    if (left)
+    Control.checkKeys();
+    if (Control.left)
         ship.left();
-    if (right)
+    if (Control.right)
         ship.right();
-    if (up && down)
+    if (Control.up && Control.down)
         ship.powerBrake(true);
     else {
         ship.powerBrake(false);
-        if (up)
+        if (Control.up)
             ship.fire();
-        if (down)
+        if (Control.down)
             ship.brake();
     }
 }
@@ -168,13 +170,9 @@ function draw() {
 var fps = 30;
 var interval = 1000 / fps;
 var tick = 1 / fps;
-setInterval(function () {
+function GameMode() {
     actions();
     draw();
-    if (pause) {
-        drawPaused();
-        return;
-    }
     var old = actors;
     actors = [];
     for (var _i = 0; _i < old.length; _i++) {
@@ -187,4 +185,19 @@ setInterval(function () {
         if (!a.dead())
             actors.push(a);
     }
-}, interval);
+}
+;
+var old = setInterval(drawPaused, 1000);
+function toggleMode(paused) {
+    if (old !== null) {
+        clearInterval(old);
+    }
+    if (paused) {
+        old = null;
+        drawPaused();
+    }
+    else {
+        old = setInterval(GameMode, interval);
+    }
+}
+;

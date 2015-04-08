@@ -1,68 +1,59 @@
-/*
- * KEYS
- */
 
-// http://stackoverflow.com/questions/1465374/javascript-event-keycode-constants
-// multiple keys must be tracked individually or it will mess up control
-var keys = [];
-var keyControl = (key, down) => { keys[key] = down; };
+module Control {
+    // virtual keys that matter to this game.
+    enum VK {
+        W = 87, // 'w'
+        A = 65, // 'a'
+        S = 83, // 's'
+        D = 68, // 'd'
+        P = 80, // 'p'
+        LEFT = 37, // left arrow
+        RIGHT = 39, // right arrow
+        UP = 38, // up arrow
+        DOWN = 40, // down arrow
+        SPACE = 32 // space bar
+    };
 
-// virtual keys that matter to us.
-enum VK {
-  W = 87,
-  A = 65,
-  S = 83,
-  D = 68,
-  P = 80,
-  LEFT = 37,
-  RIGHT = 39,
-  UP = 38,
-  DOWN = 40,
-  SPACE = 32
+    // http://stackoverflow.com/questions/1465374/javascript-event-keycode-constants
+    // multiple keys must be tracked individually or it will mess up control
+    let keys = [];
+    let keyControl = (key, down) => { keys[key] = down; };
+    let pause = true; // starts paused
+
+    function keyUp(e: KeyboardEvent) {
+        keyControl(e.keyCode, false);
+        // any key if paused or  'p' (80) key code if not paused.
+        if (pause || (!pause && e.keyCode === VK.P)) {
+            pause = !pause;
+            toggleMode(pause);
+        }
+    };
+
+    function keyDown(e: KeyboardEvent) {
+        keyControl(e.keyCode, true);
+    };
+
+    window.addEventListener("keyup", keyUp, true);
+    window.addEventListener("keydown", keyDown, true);
+
+    // these are OK to export.
+    export let left = false;
+    export let right = false;
+    export let up = false;
+    export let down = false;
+
+    // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
+    // we do not check keys on each key stroke and instead use this separate function
+    // to enable synchronous checks and avoid potential key-press changes mid-frame.
+    export function checkKeys() {
+        left = keys[VK.LEFT] || keys[VK.A];
+        right = keys[VK.RIGHT] || keys[VK.D];
+        up = keys[VK.UP] || keys[VK.W];
+        down = keys[VK.DOWN] || keys[VK.S] || keys[VK.SPACE];
+    };
+
 };
 
-function keyUp(e : KeyboardEvent) {
-    keyControl(e.keyCode, false);
-    // any key if paused or  'p' (80) key code if not paused.
-    if (pause || (!pause && e.keyCode === VK.P))
-        pause = !pause;
-};
-
-function keyDown(e : KeyboardEvent) {
-    keyControl(e.keyCode, true);
-};
-
-window.addEventListener("keyup", keyUp, true);
-window.addEventListener("keydown", keyDown, true);
-
-// these are OK to export.
-var left = false;
-var right = false;
-var up = false;
-var down = false;
-
-var pause = true;
-var debug = false;
-
-// http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
-// we do not check keys on each key stroke and instead use this separate function
-// to enable synchronous checks and avoid potential key-pressed changes mid-frame.
-function checkKeys() {
-    left = keys[37] || keys[65]; // left, 'a'
-    right = keys[39] || keys[68]; // right, 'd'
-    up = keys[38] || keys[87]; // up, 'w'
-    down = keys[40] || keys[83] || keys[32]; // down, 's', space
-};
-
-/*
-module Test {
-  export var t = 0;
-}
-
-import ttt = Test.t;
-
-console.log( ttt + 0 );
-*/
 
 /*
  * CANVAS SETUP
@@ -73,6 +64,7 @@ const ctx = canvas.getContext("2d");
 
 var W = window.innerWidth - 4;
 var H = window.innerHeight - 4;
+var debug = false;
 
 //TODO add these options to the README.md file.
 // override default canvas size
@@ -91,8 +83,6 @@ if (parameters.length > 1) {
                 case 'h':
                     H = parseInt(value);
                     break;
-                case 'p':
-                    pause = (value.toLowerCase() === 'true');
                 case 'd':
                 case 'debug':
                     debug = (value.toLowerCase() === 'true');
@@ -113,19 +103,19 @@ ctx.canvas.height = H;
 const ship = new Ship(W / 2, H / 2);
 
 function actions() {
-    checkKeys();
-    if (left)
+    Control.checkKeys();
+    if (Control.left)
         ship.left();
-    if (right)
+    if (Control.right)
         ship.right();
 
-    if (up && down)
+    if (Control.up && Control.down)
         ship.powerBrake(true);
     else {
         ship.powerBrake(false);
-        if (up)
+        if (Control.up)
             ship.fire();
-        if (down)
+        if (Control.down)
             ship.brake();
     }
 };
@@ -227,17 +217,12 @@ const fps = 30;
 const interval = 1000 / fps; // milliseconds
 const tick = 1 / fps; // seconds
 
-setInterval(function() {
+function GameMode() {
     actions();
 
     draw();
 
-    if (pause) {
-        drawPaused();
-        return;
-    }
-
-    const old: Actor[] = actors;
+    const old = actors;
     actors = []; // next frame will have new set of actors
 
     for (let a of old) {
@@ -250,4 +235,20 @@ setInterval(function() {
             actors.push(a);
     }
 
-}, interval);
+};
+
+// this is hack due to delay of loading the font
+// we just redraw the frame each second.
+let old = setInterval(drawPaused, 1000);
+
+function toggleMode(paused: boolean) {
+    if (old !== null) {
+        clearInterval(old);
+    }
+    if (paused) {
+        old = null;
+        drawPaused();
+    } else {
+        old = setInterval(GameMode, interval);
+    }
+};

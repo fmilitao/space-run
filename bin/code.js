@@ -116,7 +116,7 @@ var Ship = (function () {
         ctx.save();
         ctx.translate(this.p.x, this.p.y);
         ctx.rotate(this.angle());
-        if (up && !down) {
+        if (Control.up && !Control.down) {
             ctx.save();
             ctx.beginPath();
             ctx.moveTo(-5, -4);
@@ -133,13 +133,13 @@ var Ship = (function () {
         drawPath(ctx, triangle);
         ctx.fillStyle = '#ff2020';
         ctx.fill();
-        if (up && down) {
+        if (Control.up && Control.down) {
             ctx.lineWidth = 4;
             ctx.lineJoin = 'round';
             ctx.strokeStyle = "rgba(80, 236, 256, " + (Random() * 0.6 + 0.4) + ")";
         }
         else {
-            if (down) {
+            if (Control.down) {
                 ctx.lineWidth = 3;
                 ctx.strokeStyle = 'rgba(255,20,20,0.2)';
             }
