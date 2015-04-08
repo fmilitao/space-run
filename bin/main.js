@@ -15,10 +15,9 @@ var Control;
     })(VK || (VK = {}));
     ;
     var keys = [];
-    var keyControl = function (key, down) { keys[key] = down; };
     var pause = true;
     function keyUp(e) {
-        keyControl(e.keyCode, false);
+        keys[e.keyCode] = false;
         if (pause || (!pause && e.keyCode === VK.P)) {
             pause = !pause;
             toggleMode(pause);
@@ -26,7 +25,7 @@ var Control;
     }
     ;
     function keyDown(e) {
-        keyControl(e.keyCode, true);
+        keys[e.keyCode] = true;
     }
     ;
     window.addEventListener("keyup", keyUp, true);
@@ -76,29 +75,6 @@ if (parameters.length > 1) {
 }
 ctx.canvas.width = W;
 ctx.canvas.height = H;
-var ship = new Ship(W / 2, H / 2);
-function actions() {
-    Control.checkKeys();
-    if (Control.left)
-        ship.left();
-    if (Control.right)
-        ship.right();
-    if (Control.up && Control.down)
-        ship.powerBrake(true);
-    else {
-        ship.powerBrake(false);
-        if (Control.up)
-            ship.fire();
-        if (Control.down)
-            ship.brake();
-    }
-}
-;
-var actors = [];
-actors.push(ship);
-var cp = 3;
-while (cp-- > 0)
-    actors.push(new CheckPoint());
 var background = null;
 function clearBackground(ctx) {
     if (background !== null) {
@@ -125,12 +101,12 @@ function clearBackground(ctx) {
 var FONT_H = 8;
 var FONT_HEIGHT = FONT_H * 1.5 + 4;
 ctx.font = FONT_H + 'pt testFont';
-var msg = [
+var MSG = [
     '-- Game Paused --',
     'Press any key to continue.',
     '',
     '-- Objective --',
-    'Pop all circle thingies...',
+    'Pop all circular gue...',
     'Warning: green gue slows you down.',
     '',
     '-- Controls --',
@@ -140,22 +116,47 @@ var msg = [
     '      Brake: s OR space OR <down arrow>   ',
     "Power-Brake: hold 'fire engines' & 'brake'"
 ];
+var FPS = 30;
+var TICK_MILI = 1000 / FPS;
+var TICK_SECS = 1 / FPS;
+var ship = new Ship(W / 2, H / 2);
+var actors = [ship];
+for (var i = 0; i < 3; ++i)
+    actors.push(new CheckPoint());
+function actions() {
+    Control.checkKeys();
+    if (Control.left)
+        ship.left();
+    if (Control.right)
+        ship.right();
+    if (Control.up && Control.down)
+        ship.powerBrake(true);
+    else {
+        ship.powerBrake(false);
+        if (Control.up)
+            ship.fire();
+        if (Control.down)
+            ship.brake();
+    }
+}
+;
 function drawPaused() {
     clearBackground(ctx);
     ctx.fillStyle = "rgba(0,0,0,0.5)";
     ctx.fillRect(0, 0, W, H);
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
-    for (var i = 0; i < msg.length; ++i) {
-        var txt = msg[i];
-        ctx.fillText(txt, (W / 2) - (ctx.measureText(txt).width / 2), (H / 2 - (FONT_HEIGHT * msg.length / 2)) + (FONT_HEIGHT * i));
+    for (var i = 0; i < MSG.length; ++i) {
+        var txt = MSG[i];
+        ctx.fillText(txt, (W / 2) - (ctx.measureText(txt).width / 2), (H / 2 - (FONT_HEIGHT * MSG.length / 2)) + (FONT_HEIGHT * i));
     }
 }
 ;
 function draw() {
     clearBackground(ctx);
-    for (var i = 0; i < actors.length; ++i) {
-        actors[i].draw(ctx);
+    for (var _i = 0; _i < actors.length; _i++) {
+        var a = actors[_i];
+        a.draw(ctx);
     }
     ctx.save();
     ctx.fillStyle = "rgba(0,0,0,0.3)";
@@ -167,9 +168,6 @@ function draw() {
     ctx.restore();
 }
 ;
-var fps = 30;
-var interval = 1000 / fps;
-var tick = 1 / fps;
 function GameMode() {
     actions();
     draw();
@@ -181,7 +179,7 @@ function GameMode() {
     }
     for (var _a = 0; _a < old.length; _a++) {
         var a = old[_a];
-        a.tick(tick, H, W);
+        a.tick(TICK_SECS, H, W);
         if (!a.dead())
             actors.push(a);
     }
@@ -197,7 +195,7 @@ function toggleMode(paused) {
         drawPaused();
     }
     else {
-        old = setInterval(GameMode, interval);
+        old = setInterval(GameMode, TICK_MILI);
     }
 }
 ;

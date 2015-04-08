@@ -1,5 +1,7 @@
 
 module Control {
+    // depends on 'toggleMode' function
+
     // virtual keys that matter to this game.
     enum VK {
         W = 87, // 'w'
@@ -17,11 +19,10 @@ module Control {
     // http://stackoverflow.com/questions/1465374/javascript-event-keycode-constants
     // multiple keys must be tracked individually or it will mess up control
     let keys = [];
-    let keyControl = (key, down) => { keys[key] = down; };
     let pause = true; // starts paused
 
     function keyUp(e: KeyboardEvent) {
-        keyControl(e.keyCode, false);
+        keys[e.keyCode] = false;
         // any key if paused or  'p' (80) key code if not paused.
         if (pause || (!pause && e.keyCode === VK.P)) {
             pause = !pause;
@@ -30,7 +31,7 @@ module Control {
     };
 
     function keyDown(e: KeyboardEvent) {
-        keyControl(e.keyCode, true);
+        keys[e.keyCode] = true;
     };
 
     window.addEventListener("keyup", keyUp, true);
@@ -42,7 +43,6 @@ module Control {
     export let up = false;
     export let down = false;
 
-    // http://www.cambiaresearch.com/articles/15/javascript-char-codes-key-codes
     // we do not check keys on each key stroke and instead use this separate function
     // to enable synchronous checks and avoid potential key-press changes mid-frame.
     export function checkKeys() {
@@ -55,9 +55,9 @@ module Control {
 };
 
 
-/*
- * CANVAS SETUP
- */
+//
+// CANVAS SETUP
+//
 
 const canvas = <HTMLCanvasElement> document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
@@ -96,37 +96,6 @@ if (parameters.length > 1) {
 ctx.canvas.width = W;
 ctx.canvas.height = H;
 
-/*
- * MAIN LOOP
- */
-
-const ship = new Ship(W / 2, H / 2);
-
-function actions() {
-    Control.checkKeys();
-    if (Control.left)
-        ship.left();
-    if (Control.right)
-        ship.right();
-
-    if (Control.up && Control.down)
-        ship.powerBrake(true);
-    else {
-        ship.powerBrake(false);
-        if (Control.up)
-            ship.fire();
-        if (Control.down)
-            ship.brake();
-    }
-};
-
-let actors : Actor[] = [];
-
-actors.push(ship);
-
-let cp = 3;
-while (cp-- > 0)
-    actors.push(new CheckPoint());
 
 let background : ImageData = null;
 function clearBackground(ctx : CanvasRenderingContext2D) {
@@ -156,12 +125,12 @@ const FONT_H = 8;
 const FONT_HEIGHT = FONT_H * 1.5 + 4;
 ctx.font = FONT_H + 'pt testFont';
 
-const msg = [
+const MSG = [
     '-- Game Paused --',
     'Press any key to continue.',
     '',
     '-- Objective --',
-    'Pop all circle thingies...',
+    'Pop all circular gue...',
     'Warning: green gue slows you down.',
     '',
     '-- Controls --',
@@ -172,6 +141,45 @@ const msg = [
     "Power-Brake: hold 'fire engines' & 'brake'"
 ];
 
+
+
+//
+// Game Logic
+//
+
+
+// animation intervals
+const FPS = 30;
+const TICK_MILI = 1000 / FPS; // milliseconds
+const TICK_SECS =    1 / FPS; // seconds
+
+const ship = new Ship(W / 2, H / 2);
+
+let actors : Actor[] = [ship]; // initially only contains 'ship'
+
+// populate game world with initial CheckPoints
+for (let i = 0; i < 3; ++i)
+    actors.push(new CheckPoint());
+
+
+function actions() {
+    Control.checkKeys();
+    if (Control.left)
+        ship.left();
+    if (Control.right)
+        ship.right();
+
+    if (Control.up && Control.down)
+        ship.powerBrake(true);
+    else {
+        ship.powerBrake(false);
+        if (Control.up)
+            ship.fire();
+        if (Control.down)
+            ship.brake();
+    }
+};
+
 function drawPaused() {
     clearBackground(ctx);
 
@@ -181,11 +189,11 @@ function drawPaused() {
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
 
-    for (let i = 0; i < msg.length; ++i) {
-        const txt = msg[i];
+    for (let i = 0; i < MSG.length; ++i) {
+        const txt = MSG[i];
         ctx.fillText(txt,
             (W / 2) - (ctx.measureText(txt).width / 2),
-            (H / 2 - (FONT_HEIGHT * msg.length / 2)) + (FONT_HEIGHT * i));
+            (H / 2 - (FONT_HEIGHT * MSG.length / 2)) + (FONT_HEIGHT * i));
     }
 };
 
@@ -193,8 +201,8 @@ function draw() {
 
     clearBackground(ctx);
 
-    for (let i = 0; i < actors.length; ++i) {
-        actors[i].draw(ctx);
+    for (let a of actors) {
+        a.draw(ctx);
     }
 
     // HUD elements
@@ -212,11 +220,6 @@ function draw() {
 
 };
 
-// animation intervals
-const fps = 30;
-const interval = 1000 / fps; // milliseconds
-const tick = 1 / fps; // seconds
-
 function GameMode() {
     actions();
 
@@ -230,12 +233,16 @@ function GameMode() {
     }
 
     for (let a of old) {
-        a.tick(tick, H, W);
+        a.tick(TICK_SECS, H, W);
         if (!a.dead())
             actors.push(a);
     }
 
 };
+
+//
+// Game Mode Toggling
+//
 
 // this is hack due to delay of loading the font
 // we just redraw the frame each second.
@@ -249,6 +256,6 @@ function toggleMode(paused: boolean) {
         old = null;
         drawPaused();
     } else {
-        old = setInterval(GameMode, interval);
+        old = setInterval(GameMode, TICK_MILI);
     }
 };
