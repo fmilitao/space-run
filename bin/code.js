@@ -236,7 +236,7 @@ var Ship = (function () {
             y: (x * sin_angle + y * cos_angle) + this.p.y
         };
     };
-    Ship.prototype.points = function (p) {
+    Ship.prototype.addPoints = function (p) {
         this.score += p;
         this.timer += 3;
     };
@@ -370,7 +370,7 @@ var CheckPoint = (function () {
     CheckPoint.prototype.collision = function (s) {
         if (collides(s, this.p, this.r)) {
             var val = this.t * 10;
-            s.points(val);
+            s.addPoints(val);
             this.t = 0;
             var sp = Random() * 10 + 10;
             while (sp-- > 0)

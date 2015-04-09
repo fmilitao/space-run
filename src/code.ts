@@ -92,7 +92,7 @@ module Setup {
             ctx.fillStyle = 'white';
             ctx.lineWidth = 1;
 
-            ctx.fillText(shipStatus, 4, Setup.FONT_H * 1.5 + 2);
+            ctx.fillText(shipStatus, 4, FONT_H * 1.5 + 2);
             ctx.restore();
         },
 
@@ -358,7 +358,7 @@ class Ship implements Actor {
         };
     }
 
-    points(p: number) {
+    addPoints(p: number) {
         this.score += p;
         this.timer += 3;
     }
@@ -525,10 +525,10 @@ class CheckPoint implements Actor {
         }
     }
 
-    collision(s) {
+    collision(s : Ship ) {
         if (collides(s, this.p, this.r)) {
             var val = this.t * 10;
-            s.points(val);
+            s.addPoints(val);
             this.t = 0; // dies
 
             var sp = Random() * 10 + 10;
