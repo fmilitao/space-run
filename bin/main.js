@@ -46,37 +46,45 @@ var Control;
 ;
 var Setup;
 (function (Setup) {
-    var canvas = document.getElementById("canvas");
-    Setup.ctx = canvas.getContext("2d");
+    Setup.FONT_H = 8;
+    Setup.FONT_HEIGHT = Setup.FONT_H * 1.5 + 4;
+    Setup.ctx;
     Setup.W = window.innerWidth - 4;
     Setup.H = window.innerHeight - 4;
     Setup.debug = false;
-    var parameters = document.URL.split('?');
-    if (parameters.length > 1) {
-        parameters = parameters[1].split('&');
-        for (var i = 0; i < parameters.length; ++i) {
-            var tmp = parameters[i].split('=');
-            if (tmp.length > 1) {
-                var option = tmp[0];
-                var value = tmp[1];
-                switch (option) {
-                    case 'w':
-                        Setup.W = parseInt(value);
-                        break;
-                    case 'h':
-                        Setup.H = parseInt(value);
-                        break;
-                    case 'd':
-                    case 'debug':
-                        Setup.debug = (value.toLowerCase() === 'true');
-                    default:
-                        break;
+    function init() {
+        var canvas = document.getElementById("canvas");
+        Setup.ctx = canvas.getContext("2d");
+        var parameters = document.URL.split('?');
+        if (parameters.length > 1) {
+            parameters = parameters[1].split('&');
+            for (var i = 0; i < parameters.length; ++i) {
+                var tmp = parameters[i].split('=');
+                if (tmp.length > 1) {
+                    var option = tmp[0];
+                    var value = tmp[1];
+                    switch (option) {
+                        case 'w':
+                            Setup.W = parseInt(value);
+                            break;
+                        case 'h':
+                            Setup.H = parseInt(value);
+                            break;
+                        case 'd':
+                        case 'debug':
+                            Setup.debug = (value.toLowerCase() === 'true');
+                        default:
+                            break;
+                    }
                 }
             }
         }
+        Setup.ctx.canvas.width = Setup.W;
+        Setup.ctx.canvas.height = Setup.H;
+        Setup.ctx.font = Setup.FONT_H + 'pt testFont';
     }
-    Setup.ctx.canvas.width = Setup.W;
-    Setup.ctx.canvas.height = Setup.H;
+    Setup.init = init;
+    ;
     var background = null;
     function clearBackground() {
         if (background !== null) {
@@ -101,9 +109,6 @@ var Setup;
     }
     Setup.clearBackground = clearBackground;
     ;
-    Setup.FONT_H = 8;
-    Setup.FONT_HEIGHT = Setup.FONT_H * 1.5 + 4;
-    Setup.ctx.font = Setup.FONT_H + 'pt testFont';
 })(Setup || (Setup = {}));
 var FPS = 30;
 var TICK_MILI = 1000 / FPS;
@@ -156,17 +161,24 @@ function GameMode() {
     }
 }
 ;
-var old = setInterval(Setup.drawer.drawPaused, 1000);
-function toggleMode(paused) {
-    if (old !== null) {
-        clearInterval(old);
-    }
-    if (paused) {
-        old = null;
-        Setup.drawer.drawPaused();
-    }
-    else {
-        old = setInterval(GameMode, TICK_MILI);
-    }
-}
-;
+var toggleMode = (function () {
+    var old = null;
+    return function (paused) {
+        if (old !== null) {
+            clearInterval(old);
+        }
+        if (paused) {
+            old = null;
+            Setup.drawer.drawPaused();
+        }
+        else {
+            old = setInterval(GameMode, TICK_MILI);
+        }
+    };
+})();
+window.onload = function (ev) {
+    var tmp = document.getElementById('dummy');
+    tmp.parentNode.removeChild(tmp);
+    Setup.init();
+    toggleMode(true);
+};

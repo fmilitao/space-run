@@ -61,42 +61,49 @@ module Control {
 
 module Setup {
 
-    const canvas = <HTMLCanvasElement> document.getElementById("canvas");
-    export const ctx = canvas.getContext("2d");
+    export const FONT_H = 8;
+    export const FONT_HEIGHT = FONT_H * 1.5 + 4;
+
+    export var ctx : CanvasRenderingContext2D;
 
     export var W = window.innerWidth - 4;
     export var H = window.innerHeight - 4;
     export var debug = false;
 
-    //TODO add these options to the README.md file.
-    // override default canvas size
-    let parameters = document.URL.split('?');
-    if (parameters.length > 1) {
-        parameters = parameters[1].split('&');
-        for (let i = 0; i < parameters.length; ++i) {
-            let tmp = parameters[i].split('=');
-            if (tmp.length > 1) {
-                let option = tmp[0];
-                let value = tmp[1];
-                switch (option) {
-                    case 'w':
-                        W = parseInt(value);
-                        break;
-                    case 'h':
-                        H = parseInt(value);
-                        break;
-                    case 'd':
-                    case 'debug':
-                        debug = (value.toLowerCase() === 'true');
-                    default: // no other options
-                        break;
+    export function init() {
+        const canvas = <HTMLCanvasElement> document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        //TODO add these options to the README.md file.
+        // override default canvas size
+        let parameters = document.URL.split('?');
+        if (parameters.length > 1) {
+            parameters = parameters[1].split('&');
+            for (let i = 0; i < parameters.length; ++i) {
+                let tmp = parameters[i].split('=');
+                if (tmp.length > 1) {
+                    let option = tmp[0];
+                    let value = tmp[1];
+                    switch (option) {
+                        case 'w':
+                            W = parseInt(value);
+                            break;
+                        case 'h':
+                            H = parseInt(value);
+                            break;
+                        case 'd':
+                        case 'debug':
+                            debug = (value.toLowerCase() === 'true');
+                        default: // no other options
+                            break;
+                    }
                 }
             }
         }
-    }
 
-    ctx.canvas.width = W;
-    ctx.canvas.height = H;
+        ctx.canvas.width = W;
+        ctx.canvas.height = H;
+        ctx.font = FONT_H + 'pt testFont';
+    };
 
     let background: ImageData = null;
     export function clearBackground() {
@@ -122,9 +129,6 @@ module Setup {
         }
     };
 
-    export const FONT_H = 8;
-    export const FONT_HEIGHT = FONT_H * 1.5 + 4;
-    ctx.font = FONT_H + 'pt testFont';
 }
 
 //
@@ -200,18 +204,27 @@ function GameMode() {
 // Game Mode Toggling
 //
 
-// this is hack due to delay of loading the font
-// we just redraw the frame each second.
-let old = setInterval(Setup.drawer.drawPaused, 1000);
+const toggleMode = (() => {
+    let old = null;
+    return (paused: boolean) => {
+        if (old !== null) {
+            clearInterval(old);
+        }
+        if (paused) {
+            old = null;
+            Setup.drawer.drawPaused();
+        } else {
+            old = setInterval(GameMode, TICK_MILI);
+        }
+    };
+})();
 
-function toggleMode(paused: boolean) {
-    if (old !== null) {
-        clearInterval(old);
-    }
-    if (paused) {
-        old = null;
-        Setup.drawer.drawPaused();
-    } else {
-        old = setInterval(GameMode, TICK_MILI);
-    }
+window.onload = (ev : Event ) => {
+  // remove dummy element used to load the font before use
+  let tmp = document.getElementById('dummy');
+  tmp.parentNode.removeChild(tmp);
+
+  // initialize canvas
+  Setup.init();
+  toggleMode(true); // start paused
 };
