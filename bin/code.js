@@ -72,7 +72,7 @@ var Setup;
                 Setup.ctx.fillText(txt, (Setup.W / 2) - (Setup.ctx.measureText(txt).width / 2), (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
             }
         },
-        drawGue: function (g) {
+        caseGue: function (g) {
             var df = g.t / GUE_MAX;
             Setup.ctx.save();
             Setup.ctx.beginPath();
@@ -82,7 +82,7 @@ var Setup;
             Setup.ctx.closePath();
             Setup.ctx.restore();
         },
-        drawShip: function (s) {
+        caseShip: function (s) {
             Setup.ctx.save();
             var angle = s.angle();
             Setup.ctx.translate(s.p.x, s.p.y);
@@ -122,7 +122,7 @@ var Setup;
             Setup.ctx.stroke();
             Setup.ctx.restore();
         },
-        drawPoints: function (p) {
+        casePoints: function (p) {
             var df = (p.t / POINTS_MAX);
             Setup.ctx.save();
             Setup.ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
@@ -131,7 +131,7 @@ var Setup;
             Setup.ctx.fillText(text, p.x - Setup.ctx.measureText(text).width / 2, p.y + (Setup.FONT_H * 1.5) / 2);
             Setup.ctx.restore();
         },
-        drawSpark: function (s) {
+        caseSpark: function (s) {
             Setup.ctx.save();
             Setup.ctx.beginPath();
             Setup.ctx.arc(s.p.x, s.p.y, SPARK_SIZE, 0, TWO_PI, false);
@@ -143,7 +143,7 @@ var Setup;
             Setup.ctx.stroke();
             Setup.ctx.restore();
         },
-        drawSmoke: function (s) {
+        caseSmoke: function (s) {
             var df = (s.t / SMOKE_MAX);
             var size = 15 - 12 * df;
             Setup.ctx.save();
@@ -154,7 +154,7 @@ var Setup;
             Setup.ctx.closePath();
             Setup.ctx.restore();
         },
-        drawCheckPoint: function (cp) {
+        caseCheckPoint: function (cp) {
             var df = cp.t / CHECKPOINT_MAX;
             Setup.ctx.save();
             Setup.ctx.beginPath();
@@ -217,6 +217,29 @@ function fix(str, length) {
     return tmp;
 }
 ;
+var playerCollider = {
+    caseGue: function (g) {
+        if (collides(ship, g.p, g.s)) {
+            ship.slowdown(0.8 + (1 - 0.8) * (1 - g.t / GUE_MAX));
+        }
+    },
+    caseCheckPoint: function (cp) {
+        if (collides(ship, cp.p, cp.r)) {
+            var val = cp.t * 10;
+            ship.addPoints(val);
+            cp.t = 0;
+            var sp = Random() * 10 + 10;
+            while (sp-- > 0)
+                actors.push(new Spark(cp.p.x, cp.p.y, Random() * TWO_PI));
+            actors.push(new CheckPoint());
+            actors.push(new Points(cp.p.x, cp.p.y, ('+' + val.toFixed(1) + '!')));
+        }
+    },
+    caseShip: function (s) { },
+    caseSpark: function (s) { },
+    caseSmoke: function (s) { },
+    casePoints: function (p) { },
+};
 var Ship = (function () {
     function Ship(x, y) {
         this.power = null;
@@ -254,8 +277,8 @@ var Ship = (function () {
     Ship.prototype.angle = function () {
         return TWO_PI / MAX_R * this.r;
     };
-    Ship.prototype.draw = function (d) {
-        d.drawShip(this);
+    Ship.prototype.match = function (m) {
+        m.caseShip(this);
     };
     Ship.prototype.left = function () {
         this.r = (this.r - 1) % MAX_R;
@@ -325,8 +348,6 @@ var Ship = (function () {
     Ship.prototype.dead = function () {
         return false;
     };
-    Ship.prototype.collision = function (s) {
-    };
     Ship.prototype.toString = function () {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
@@ -352,8 +373,8 @@ var CheckPoint = (function () {
     CheckPoint.prototype.dead = function () {
         return this.t <= 0;
     };
-    CheckPoint.prototype.draw = function (d) {
-        d.drawCheckPoint(this);
+    CheckPoint.prototype.match = function (m) {
+        m.caseCheckPoint(this);
     };
     CheckPoint.prototype.tick = function (time) {
         if (this.dead())
@@ -365,18 +386,6 @@ var CheckPoint = (function () {
             var gues = Random() * 4 + 2;
             while (gues-- > 0)
                 actors.push(new Gue(this.p.x, this.p.y));
-        }
-    };
-    CheckPoint.prototype.collision = function (s) {
-        if (collides(s, this.p, this.r)) {
-            var val = this.t * 10;
-            s.addPoints(val);
-            this.t = 0;
-            var sp = Random() * 10 + 10;
-            while (sp-- > 0)
-                actors.push(new Spark(this.p.x, this.p.y, Random() * TWO_PI));
-            actors.push(new CheckPoint());
-            actors.push(new Points(this.p.x, this.p.y, ('+' + val.toFixed(1) + '!')));
         }
     };
     return CheckPoint;
@@ -391,8 +400,8 @@ var Smoke = (function () {
     Smoke.prototype.dead = function () {
         return this.t <= 0;
     };
-    Smoke.prototype.draw = function (d) {
-        d.drawSmoke(this);
+    Smoke.prototype.match = function (m) {
+        m.caseSmoke(this);
     };
     Smoke.prototype.tick = function (time) {
         this.t -= time;
@@ -400,8 +409,6 @@ var Smoke = (function () {
         this.p.y += this.v.y * time;
         this.v.x *= SMOKE_F;
         this.v.y *= SMOKE_F;
-    };
-    Smoke.prototype.collision = function (s) {
     };
     return Smoke;
 })();
@@ -418,8 +425,8 @@ var Gue = (function () {
     Gue.prototype.dead = function () {
         return this.t <= 0;
     };
-    Gue.prototype.draw = function (d) {
-        d.drawGue(this);
+    Gue.prototype.match = function (m) {
+        m.caseGue(this);
     };
     Gue.prototype.tick = function (time) {
         this.t -= time;
@@ -428,11 +435,6 @@ var Gue = (function () {
         this.p.y += this.v.y * time;
         this.v.x *= GUE_F;
         this.v.y *= GUE_F;
-    };
-    Gue.prototype.collision = function (ship) {
-        if (collides(ship, this.p, this.s)) {
-            ship.slowdown(0.8 + (1 - 0.8) * (1 - this.t / GUE_MAX));
-        }
     };
     return Gue;
 })();
@@ -450,13 +452,11 @@ var Points = (function () {
     Points.prototype.dead = function () {
         return this.t <= 0;
     };
-    Points.prototype.draw = function (d) {
-        d.drawPoints(this);
+    Points.prototype.match = function (m) {
+        m.casePoints(this);
     };
     Points.prototype.tick = function (time) {
         this.t -= time;
-    };
-    Points.prototype.collision = function (s) {
     };
     return Points;
 })();
@@ -469,8 +469,8 @@ var Spark = (function () {
     Spark.prototype.dead = function () {
         return this.t <= 0;
     };
-    Spark.prototype.draw = function (d) {
-        d.drawSpark(this);
+    Spark.prototype.match = function (m) {
+        m.caseSpark(this);
     };
     Spark.prototype.tick = function (time) {
         this.t -= time;
@@ -478,8 +478,6 @@ var Spark = (function () {
         this.p.y += this.v.y * time;
         this.v.x *= SPARK_F;
         this.v.y *= SPARK_F;
-    };
-    Spark.prototype.collision = function (s) {
     };
     return Spark;
 })();

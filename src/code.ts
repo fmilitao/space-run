@@ -32,18 +32,14 @@ const POINTS_MAX = 3;
 const TRIANGLE: [number, number][] = [[-5, -5], [-5, 5], [15, 0]];
 const MISSILE: [number, number][] = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
 
-interface DrawStuff {
-
-    drawPaused();
-    drawHUD(shipStatus: string);
-
-    drawGue(g: Gue);
-    drawShip(s: Ship);
-    drawSpark(s: Spark);
-    drawSmoke(s: Smoke);
-    drawPoints(p: Points);
-    drawCheckPoint(cp: CheckPoint);
-
+// case analysis of all Actors
+interface MatchActor {
+    caseGue(g: Gue);
+    caseShip(s: Ship);
+    caseSpark(s: Spark);
+    caseSmoke(s: Smoke);
+    casePoints(p: Points);
+    caseCheckPoint(cp: CheckPoint);
 }
 
 // extends Setup with drawer : DrawStuff object.
@@ -80,7 +76,7 @@ module Setup {
     };
 
     // draws all stuff in this game
-    export const drawer: DrawStuff = {
+    export const drawer = {
 
         // HUD elements
         drawHUD: (shipStatus: string) => {
@@ -114,7 +110,11 @@ module Setup {
             }
         },
 
-        drawGue: (g: Gue) => {
+        //
+        // Actor Case Analysis
+        //
+
+        caseGue: (g: Gue) => {
             const df = g.t / GUE_MAX;
             ctx.save();
             ctx.beginPath();
@@ -126,7 +126,7 @@ module Setup {
         },
 
         // main player ship, with effects based on Control status
-        drawShip: (s: Ship) => {
+        caseShip: (s: Ship) => {
             ctx.save();
             const angle = s.angle();
 
@@ -179,7 +179,7 @@ module Setup {
         },
 
         // ??
-        drawPoints: (p: Points) => {
+        casePoints: (p: Points) => {
             const df = (p.t / POINTS_MAX);
 
             ctx.save();
@@ -193,7 +193,7 @@ module Setup {
         },
 
         // Sparks for when the Gue explodes
-        drawSpark: (s: Spark) => {
+        caseSpark: (s: Spark) => {
             ctx.save();
             ctx.beginPath();
             ctx.arc(s.p.x, s.p.y, SPARK_SIZE, 0, TWO_PI, false);
@@ -208,7 +208,7 @@ module Setup {
         },
 
         // growing smoke dust
-        drawSmoke: (s: Smoke) => {
+        caseSmoke: (s: Smoke) => {
             const df = (s.t / SMOKE_MAX);
             const size = 15 - 12 * df;
 
@@ -222,7 +222,7 @@ module Setup {
         },
 
         // growing CheckPoint circle
-        drawCheckPoint: (cp: CheckPoint) => {
+        caseCheckPoint: (cp: CheckPoint) => {
             const df = cp.t / CHECKPOINT_MAX; // from 1 to 0
 
             ctx.save();
@@ -306,6 +306,36 @@ function fix(str, length) {
     return tmp;
 };
 
+// checks collisions with ship
+const playerCollider : MatchActor = {
+
+  caseGue : (g: Gue) => {
+    if (collides(ship, g.p, g.s)) {
+        ship.slowdown(0.8 + (1 - 0.8) * (1 - g.t / GUE_MAX));
+    }
+  },
+
+  caseCheckPoint : (cp: CheckPoint) => {
+    if (collides(ship, cp.p, cp.r)) {
+        const val = cp.t * 10;
+        ship.addPoints(val);
+        cp.t = 0; // dies
+
+        let sp = Random() * 10 + 10;
+        while (sp-- > 0)
+            actors.push(new Spark(cp.p.x, cp.p.y, Random() * TWO_PI));
+
+        actors.push(new CheckPoint());
+        actors.push(new Points(cp.p.x, cp.p.y, ('+' + val.toFixed(1) + '!')));
+    }
+  },
+
+  // these never collide with ship:
+  caseShip : (s: Ship) => {},
+  caseSpark : (s: Spark) => {},
+  caseSmoke : (s: Smoke) => {},
+  casePoints : (p: Points) => {},
+};
 
 /*
  * Actors
@@ -320,8 +350,7 @@ interface PosXY {
 interface Actor {
     dead(): boolean;
     tick(time: number, H?: number, W?: number): void;
-    draw(d: DrawStuff): void;
-    collision(s: Ship): void;
+    match(m: MatchActor): void;
 }
 
 class Ship implements Actor {
@@ -381,8 +410,8 @@ class Ship implements Actor {
         return TWO_PI / MAX_R * this.r;
     }
 
-    draw(d: DrawStuff) {
-        d.drawShip(this);
+    match(m: MatchActor) {
+        m.caseShip(this);
     }
 
     left() {
@@ -467,10 +496,6 @@ class Ship implements Actor {
         return false;
     }
 
-    collision(s) {
-        // never collides with self
-    }
-
     toString() {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
@@ -505,8 +530,8 @@ class CheckPoint implements Actor {
         return this.t <= 0;
     }
 
-    draw(d: DrawStuff) {
-        d.drawCheckPoint(this);
+    match(m: MatchActor) {
+        m.caseCheckPoint(this);
     }
 
     tick(time: number) {
@@ -522,21 +547,6 @@ class CheckPoint implements Actor {
             var gues = Random() * 4 + 2;
             while (gues-- > 0)
                 actors.push(new Gue(this.p.x, this.p.y));
-        }
-    }
-
-    collision(s : Ship ) {
-        if (collides(s, this.p, this.r)) {
-            var val = this.t * 10;
-            s.addPoints(val);
-            this.t = 0; // dies
-
-            var sp = Random() * 10 + 10;
-            while (sp-- > 0)
-                actors.push(new Spark(this.p.x, this.p.y, Random() * TWO_PI));
-
-            actors.push(new CheckPoint());
-            actors.push(new Points(this.p.x, this.p.y, ('+' + val.toFixed(1) + '!')));
         }
     }
 
@@ -562,8 +572,8 @@ class Smoke implements Actor {
         return this.t <= 0;
     }
 
-    draw(d: DrawStuff) {
-        d.drawSmoke(this);
+    match(m: MatchActor) {
+        m.caseSmoke(this);
     }
 
     tick(time: number) {
@@ -572,10 +582,6 @@ class Smoke implements Actor {
         this.p.y += this.v.y * time;
         this.v.x *= SMOKE_F;
         this.v.y *= SMOKE_F;
-    }
-
-    collision(s) {
-        // never collides
     }
 
 }
@@ -605,8 +611,8 @@ class Gue implements Actor {
         return this.t <= 0;
     }
 
-    draw(d: DrawStuff) {
-        d.drawGue(this);
+    match(m: MatchActor) {
+        m.caseGue(this);
     }
 
     tick(time: number) {
@@ -616,13 +622,6 @@ class Gue implements Actor {
         this.p.y += this.v.y * time;
         this.v.x *= GUE_F;
         this.v.y *= GUE_F;
-    }
-
-
-    collision(ship) {
-        if (collides(ship, this.p, this.s)) {
-            ship.slowdown(0.8 + (1 - 0.8) * (1 - this.t / GUE_MAX));
-        }
     }
 
 }
@@ -648,17 +647,14 @@ class Points implements Actor {
         return this.t <= 0;
     }
 
-    draw(d: DrawStuff) {
-        d.drawPoints(this);
+    match(m: MatchActor) {
+        m.casePoints(this);
     }
 
     tick(time: number) {
         this.t -= time;
     }
 
-    collision(s) {
-        // never collides
-    }
 }
 
 
@@ -678,8 +674,8 @@ class Spark implements Actor {
         return this.t <= 0;
     }
 
-    draw(d: DrawStuff) {
-        d.drawSpark(this);
+    match(m: MatchActor) {
+        m.caseSpark(this);
     }
 
     tick(time: number) {
@@ -690,7 +686,4 @@ class Spark implements Actor {
         this.v.y *= SPARK_F;
     }
 
-    collision(s) {
-        // never collides
-    }
 }

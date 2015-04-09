@@ -169,7 +169,7 @@ function draw() {
     Setup.clearBackground();
     const d = Setup.drawer;
     for (let a of actors) {
-        a.draw(d);
+        a.match(d);
     }
 
     d.drawHUD(ship.toString());
@@ -185,7 +185,7 @@ function GameMode() {
     actors = []; // next frame will have new set of actors
 
     for (let a of old) {
-        a.collision(ship);
+        a.match(playerCollider);
     }
 
     for (let a of old) {

@@ -134,7 +134,7 @@ function draw() {
     var d = Setup.drawer;
     for (var _i = 0; _i < actors.length; _i++) {
         var a = actors[_i];
-        a.draw(d);
+        a.match(d);
     }
     d.drawHUD(ship.toString());
 }
@@ -146,7 +146,7 @@ function GameMode() {
     actors = [];
     for (var _i = 0; _i < old.length; _i++) {
         var a = old[_i];
-        a.collision(ship);
+        a.match(playerCollider);
     }
     for (var _a = 0; _a < old.length; _a++) {
         var a = old[_a];
