@@ -150,7 +150,7 @@ function GameMode() {
     }
     for (var _a = 0; _a < old.length; _a++) {
         var a = old[_a];
-        a.tick(TICK_SECS, Setup.H, Setup.W);
+        a.tick(TICK_SECS);
         if (!a.dead())
             actors.push(a);
     }

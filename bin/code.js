@@ -277,9 +277,6 @@ var Ship = (function () {
     Ship.prototype.angle = function () {
         return TWO_PI / MAX_R * this.r;
     };
-    Ship.prototype.match = function (m) {
-        return m.caseShip(this);
-    };
     Ship.prototype.left = function () {
         this.r = (this.r - 1) % MAX_R;
     };
@@ -318,10 +315,12 @@ var Ship = (function () {
             this.power += tmp;
         }
     };
-    Ship.prototype.tick = function (t, H, W) {
+    Ship.prototype.tick = function (t) {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
         this.timer -= t;
+        var H = Setup.H;
+        var W = Setup.W;
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)
@@ -333,9 +332,6 @@ var Ship = (function () {
             }
             this.timer = 0;
         }
-        this.bounds(H, W);
-    };
-    Ship.prototype.bounds = function (H, W) {
         if (this.p.x < 0)
             this.p.x = W;
         if (this.p.x > W)
@@ -360,6 +356,9 @@ var Ship = (function () {
         return score + ' pos=(' + fix(xx, 6) +
             ', ' + fix(yy, 6) + ') vel=' + fix(vv, 6) + ' ' + pp;
     };
+    Ship.prototype.match = function (m) {
+        return m.caseShip(this);
+    };
     return Ship;
 })();
 var CheckPoint = (function () {
@@ -373,9 +372,6 @@ var CheckPoint = (function () {
     CheckPoint.prototype.dead = function () {
         return this.t <= 0;
     };
-    CheckPoint.prototype.match = function (m) {
-        return m.caseCheckPoint(this);
-    };
     CheckPoint.prototype.tick = function (time) {
         if (this.dead())
             return;
@@ -387,6 +383,9 @@ var CheckPoint = (function () {
             while (gues-- > 0)
                 actors.push(new Gue(this.p.x, this.p.y));
         }
+    };
+    CheckPoint.prototype.match = function (m) {
+        return m.caseCheckPoint(this);
     };
     return CheckPoint;
 })();
@@ -400,15 +399,15 @@ var Smoke = (function () {
     Smoke.prototype.dead = function () {
         return this.t <= 0;
     };
-    Smoke.prototype.match = function (m) {
-        return m.caseSmoke(this);
-    };
     Smoke.prototype.tick = function (time) {
         this.t -= time;
         this.p.x += this.v.x * time;
         this.p.y += this.v.y * time;
         this.v.x *= SMOKE_F;
         this.v.y *= SMOKE_F;
+    };
+    Smoke.prototype.match = function (m) {
+        return m.caseSmoke(this);
     };
     return Smoke;
 })();
@@ -425,9 +424,6 @@ var Gue = (function () {
     Gue.prototype.dead = function () {
         return this.t <= 0;
     };
-    Gue.prototype.match = function (m) {
-        return m.caseGue(this);
-    };
     Gue.prototype.tick = function (time) {
         this.t -= time;
         this.s = this.size - 10 * (this.t / GUE_MAX);
@@ -435,6 +431,9 @@ var Gue = (function () {
         this.p.y += this.v.y * time;
         this.v.x *= GUE_F;
         this.v.y *= GUE_F;
+    };
+    Gue.prototype.match = function (m) {
+        return m.caseGue(this);
     };
     return Gue;
 })();
@@ -452,11 +451,11 @@ var Points = (function () {
     Points.prototype.dead = function () {
         return this.t <= 0;
     };
-    Points.prototype.match = function (m) {
-        return m.casePoints(this);
-    };
     Points.prototype.tick = function (time) {
         this.t -= time;
+    };
+    Points.prototype.match = function (m) {
+        return m.casePoints(this);
     };
     return Points;
 })();
@@ -469,15 +468,15 @@ var Spark = (function () {
     Spark.prototype.dead = function () {
         return this.t <= 0;
     };
-    Spark.prototype.match = function (m) {
-        return m.caseSpark(this);
-    };
     Spark.prototype.tick = function (time) {
         this.t -= time;
         this.p.x += this.v.x * time;
         this.p.y += this.v.y * time;
         this.v.x *= SPARK_F;
         this.v.y *= SPARK_F;
+    };
+    Spark.prototype.match = function (m) {
+        return m.caseSpark(this);
     };
     return Spark;
 })();

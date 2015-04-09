@@ -42,6 +42,10 @@ interface MatchActor<T> {
     caseCheckPoint(cp: CheckPoint) : T;
 }
 
+//
+// Actor / HUD / Pause drawer
+//
+
 // extends Setup with drawer : DrawStuff object.
 module Setup {
 
@@ -306,6 +310,10 @@ function fix(str, length) {
     return tmp;
 };
 
+//
+// Collision Handler
+//
+
 // checks collisions with ship
 const playerCollider : MatchActor<void> = {
 
@@ -349,7 +357,7 @@ interface PosXY {
 
 interface Actor {
     dead(): boolean;
-    tick(time: number, H?: number, W?: number): void;
+    tick(time: number): void;
     match<T>(m: MatchActor<T>): T;
 }
 
@@ -410,10 +418,6 @@ class Ship implements Actor {
         return TWO_PI / MAX_R * this.r;
     }
 
-    match<T>(m: MatchActor<T>) : T{
-        return m.caseShip(this);
-    }
-
     left() {
         this.r = (this.r - 1) % MAX_R;
     }
@@ -464,11 +468,14 @@ class Ship implements Actor {
        	}
     }
 
-    tick(t: number, H: number, W: number) {
+    tick(t: number) {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
 
         this.timer -= t;
+        const H = Setup.H;
+        const W = Setup.W;
+
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)
@@ -481,10 +488,7 @@ class Ship implements Actor {
             this.timer = 0;
         }
 
-        this.bounds(H, W);
-    }
-
-    bounds(H: number, W: number) { // FIXME bad style
+        // World bounds checking
         if (this.p.x < 0) this.p.x = W;
         if (this.p.x > W) this.p.x = 0;
 
@@ -510,6 +514,10 @@ class Ship implements Actor {
             ', ' + fix(yy, 6) + ') vel=' + fix(vv, 6) + ' ' + pp;
     }
 
+    match<T>(m: MatchActor<T>) : T{
+        return m.caseShip(this);
+    }
+
 }
 
 class CheckPoint implements Actor {
@@ -530,10 +538,6 @@ class CheckPoint implements Actor {
         return this.t <= 0;
     }
 
-    match<T>(m: MatchActor<T>) : T{
-        return m.caseCheckPoint(this);
-    }
-
     tick(time: number) {
         if (this.dead()) // already dead
             return;
@@ -548,6 +552,10 @@ class CheckPoint implements Actor {
             while (gues-- > 0)
                 actors.push(new Gue(this.p.x, this.p.y));
         }
+    }
+
+    match<T>(m: MatchActor<T>) : T{
+        return m.caseCheckPoint(this);
     }
 
 }
@@ -572,16 +580,16 @@ class Smoke implements Actor {
         return this.t <= 0;
     }
 
-    match<T>(m: MatchActor<T>) : T {
-        return m.caseSmoke(this);
-    }
-
     tick(time: number) {
         this.t -= time;
         this.p.x += this.v.x * time;
         this.p.y += this.v.y * time;
         this.v.x *= SMOKE_F;
         this.v.y *= SMOKE_F;
+    }
+
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseSmoke(this);
     }
 
 }
@@ -611,10 +619,6 @@ class Gue implements Actor {
         return this.t <= 0;
     }
 
-    match<T>(m: MatchActor<T>) : T {
-        return m.caseGue(this);
-    }
-
     tick(time: number) {
         this.t -= time;
         this.s = this.size - 10 * (this.t / GUE_MAX);
@@ -622,6 +626,10 @@ class Gue implements Actor {
         this.p.y += this.v.y * time;
         this.v.x *= GUE_F;
         this.v.y *= GUE_F;
+    }
+
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseGue(this);
     }
 
 }
@@ -647,12 +655,12 @@ class Points implements Actor {
         return this.t <= 0;
     }
 
-    match<T>(m: MatchActor<T>) : T {
-        return m.casePoints(this);
-    }
-
     tick(time: number) {
         this.t -= time;
+    }
+
+    match<T>(m: MatchActor<T>) : T {
+        return m.casePoints(this);
     }
 
 }
@@ -674,16 +682,16 @@ class Spark implements Actor {
         return this.t <= 0;
     }
 
-    match<T>(m: MatchActor<T>) : T {
-        return m.caseSpark(this);
-    }
-
     tick(time: number) {
         this.t -= time;
         this.p.x += this.v.x * time;
         this.p.y += this.v.y * time;
         this.v.x *= SPARK_F;
         this.v.y *= SPARK_F;
+    }
+
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseSpark(this);
     }
 
 }

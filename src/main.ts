@@ -189,7 +189,7 @@ function GameMode() {
     }
 
     for (let a of old) {
-        a.tick(TICK_SECS, Setup.H, Setup.W);
+        a.tick(TICK_SECS);
         if (!a.dead())
             actors.push(a);
     }
