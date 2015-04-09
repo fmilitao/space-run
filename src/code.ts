@@ -33,13 +33,13 @@ const TRIANGLE: [number, number][] = [[-5, -5], [-5, 5], [15, 0]];
 const MISSILE: [number, number][] = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
 
 // case analysis of all Actors
-interface MatchActor {
-    caseGue(g: Gue);
-    caseShip(s: Ship);
-    caseSpark(s: Spark);
-    caseSmoke(s: Smoke);
-    casePoints(p: Points);
-    caseCheckPoint(cp: CheckPoint);
+interface MatchActor<T> {
+    caseGue(g: Gue) : T;
+    caseShip(s: Ship) : T;
+    caseSpark(s: Spark) : T;
+    caseSmoke(s: Smoke) : T;
+    casePoints(p: Points) : T;
+    caseCheckPoint(cp: CheckPoint) : T;
 }
 
 // extends Setup with drawer : DrawStuff object.
@@ -307,7 +307,7 @@ function fix(str, length) {
 };
 
 // checks collisions with ship
-const playerCollider : MatchActor = {
+const playerCollider : MatchActor<void> = {
 
   caseGue : (g: Gue) => {
     if (collides(ship, g.p, g.s)) {
@@ -350,7 +350,7 @@ interface PosXY {
 interface Actor {
     dead(): boolean;
     tick(time: number, H?: number, W?: number): void;
-    match(m: MatchActor): void;
+    match<T>(m: MatchActor<T>): T;
 }
 
 class Ship implements Actor {
@@ -410,8 +410,8 @@ class Ship implements Actor {
         return TWO_PI / MAX_R * this.r;
     }
 
-    match(m: MatchActor) {
-        m.caseShip(this);
+    match<T>(m: MatchActor<T>) : T{
+        return m.caseShip(this);
     }
 
     left() {
@@ -530,8 +530,8 @@ class CheckPoint implements Actor {
         return this.t <= 0;
     }
 
-    match(m: MatchActor) {
-        m.caseCheckPoint(this);
+    match<T>(m: MatchActor<T>) : T{
+        return m.caseCheckPoint(this);
     }
 
     tick(time: number) {
@@ -572,8 +572,8 @@ class Smoke implements Actor {
         return this.t <= 0;
     }
 
-    match(m: MatchActor) {
-        m.caseSmoke(this);
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseSmoke(this);
     }
 
     tick(time: number) {
@@ -611,8 +611,8 @@ class Gue implements Actor {
         return this.t <= 0;
     }
 
-    match(m: MatchActor) {
-        m.caseGue(this);
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseGue(this);
     }
 
     tick(time: number) {
@@ -647,8 +647,8 @@ class Points implements Actor {
         return this.t <= 0;
     }
 
-    match(m: MatchActor) {
-        m.casePoints(this);
+    match<T>(m: MatchActor<T>) : T {
+        return m.casePoints(this);
     }
 
     tick(time: number) {
@@ -674,8 +674,8 @@ class Spark implements Actor {
         return this.t <= 0;
     }
 
-    match(m: MatchActor) {
-        m.caseSpark(this);
+    match<T>(m: MatchActor<T>) : T {
+        return m.caseSpark(this);
     }
 
     tick(time: number) {

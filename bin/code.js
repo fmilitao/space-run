@@ -278,7 +278,7 @@ var Ship = (function () {
         return TWO_PI / MAX_R * this.r;
     };
     Ship.prototype.match = function (m) {
-        m.caseShip(this);
+        return m.caseShip(this);
     };
     Ship.prototype.left = function () {
         this.r = (this.r - 1) % MAX_R;
@@ -374,7 +374,7 @@ var CheckPoint = (function () {
         return this.t <= 0;
     };
     CheckPoint.prototype.match = function (m) {
-        m.caseCheckPoint(this);
+        return m.caseCheckPoint(this);
     };
     CheckPoint.prototype.tick = function (time) {
         if (this.dead())
@@ -401,7 +401,7 @@ var Smoke = (function () {
         return this.t <= 0;
     };
     Smoke.prototype.match = function (m) {
-        m.caseSmoke(this);
+        return m.caseSmoke(this);
     };
     Smoke.prototype.tick = function (time) {
         this.t -= time;
@@ -426,7 +426,7 @@ var Gue = (function () {
         return this.t <= 0;
     };
     Gue.prototype.match = function (m) {
-        m.caseGue(this);
+        return m.caseGue(this);
     };
     Gue.prototype.tick = function (time) {
         this.t -= time;
@@ -453,7 +453,7 @@ var Points = (function () {
         return this.t <= 0;
     };
     Points.prototype.match = function (m) {
-        m.casePoints(this);
+        return m.casePoints(this);
     };
     Points.prototype.tick = function (time) {
         this.t -= time;
@@ -470,7 +470,7 @@ var Spark = (function () {
         return this.t <= 0;
     };
     Spark.prototype.match = function (m) {
-        m.caseSpark(this);
+        return m.caseSpark(this);
     };
     Spark.prototype.tick = function (time) {
         this.t -= time;
