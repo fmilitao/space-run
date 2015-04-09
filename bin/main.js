@@ -44,63 +44,67 @@ var Control;
     ;
 })(Control || (Control = {}));
 ;
-var canvas = document.getElementById("canvas");
-var ctx = canvas.getContext("2d");
-var W = window.innerWidth - 4;
-var H = window.innerHeight - 4;
-var debug = false;
-var parameters = document.URL.split('?');
-if (parameters.length > 1) {
-    parameters = parameters[1].split('&');
-    for (var i = 0; i < parameters.length; ++i) {
-        var tmp = parameters[i].split('=');
-        if (tmp.length > 1) {
-            var option = tmp[0];
-            var value = tmp[1];
-            switch (option) {
-                case 'w':
-                    W = parseInt(value);
-                    break;
-                case 'h':
-                    H = parseInt(value);
-                    break;
-                case 'd':
-                case 'debug':
-                    debug = (value.toLowerCase() === 'true');
-                default:
-                    break;
+var Setup;
+(function (Setup) {
+    var canvas = document.getElementById("canvas");
+    Setup.ctx = canvas.getContext("2d");
+    Setup.W = window.innerWidth - 4;
+    Setup.H = window.innerHeight - 4;
+    Setup.debug = false;
+    var parameters = document.URL.split('?');
+    if (parameters.length > 1) {
+        parameters = parameters[1].split('&');
+        for (var i = 0; i < parameters.length; ++i) {
+            var tmp = parameters[i].split('=');
+            if (tmp.length > 1) {
+                var option = tmp[0];
+                var value = tmp[1];
+                switch (option) {
+                    case 'w':
+                        Setup.W = parseInt(value);
+                        break;
+                    case 'h':
+                        Setup.H = parseInt(value);
+                        break;
+                    case 'd':
+                    case 'debug':
+                        Setup.debug = (value.toLowerCase() === 'true');
+                    default:
+                        break;
+                }
             }
         }
     }
-}
-ctx.canvas.width = W;
-ctx.canvas.height = H;
-var background = null;
-function clearBackground(ctx) {
-    if (background !== null) {
-        ctx.putImageData(background, 0, 0);
-    }
-    else {
-        ctx.fillStyle = "#222244";
-        ctx.fillRect(0, 0, W, H);
-        for (var i = 0; i < 150; ++i) {
-            var x = Math.random() * W;
-            var y = Math.random() * H;
-            var s = Math.random() + 1;
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, s, 0, TWO_PI, false);
-            ctx.fillStyle = '#EDD879';
-            ctx.fill();
-            ctx.restore();
+    Setup.ctx.canvas.width = Setup.W;
+    Setup.ctx.canvas.height = Setup.H;
+    var background = null;
+    function clearBackground() {
+        if (background !== null) {
+            Setup.ctx.putImageData(background, 0, 0);
         }
-        background = ctx.getImageData(0, 0, W, H);
+        else {
+            Setup.ctx.fillStyle = "#222244";
+            Setup.ctx.fillRect(0, 0, Setup.W, Setup.H);
+            for (var i = 0; i < 150; ++i) {
+                var x = Math.random() * Setup.W;
+                var y = Math.random() * Setup.H;
+                var s = Math.random() + 1;
+                Setup.ctx.save();
+                Setup.ctx.beginPath();
+                Setup.ctx.arc(x, y, s, 0, TWO_PI, false);
+                Setup.ctx.fillStyle = '#EDD879';
+                Setup.ctx.fill();
+                Setup.ctx.restore();
+            }
+            background = Setup.ctx.getImageData(0, 0, Setup.W, Setup.H);
+        }
     }
-}
-;
-var FONT_H = 8;
-var FONT_HEIGHT = FONT_H * 1.5 + 4;
-ctx.font = FONT_H + 'pt testFont';
+    Setup.clearBackground = clearBackground;
+    ;
+    Setup.FONT_H = 8;
+    Setup.FONT_HEIGHT = Setup.FONT_H * 1.5 + 4;
+    Setup.ctx.font = Setup.FONT_H + 'pt testFont';
+})(Setup || (Setup = {}));
 var MSG = [
     '-- Game Paused --',
     'Press any key to continue.',
@@ -119,7 +123,7 @@ var MSG = [
 var FPS = 30;
 var TICK_MILI = 1000 / FPS;
 var TICK_SECS = 1 / FPS;
-var ship = new Ship(W / 2, H / 2);
+var ship = new Ship(Setup.W / 2, Setup.H / 2);
 var actors = [ship];
 for (var i = 0; i < 3; ++i)
     actors.push(new CheckPoint());
@@ -141,30 +145,32 @@ function actions() {
 }
 ;
 function drawPaused() {
-    clearBackground(ctx);
+    Setup.clearBackground();
+    var ctx = Setup.ctx;
     ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, Setup.W, Setup.H);
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
     for (var i = 0; i < MSG.length; ++i) {
         var txt = MSG[i];
-        ctx.fillText(txt, (W / 2) - (ctx.measureText(txt).width / 2), (H / 2 - (FONT_HEIGHT * MSG.length / 2)) + (FONT_HEIGHT * i));
+        ctx.fillText(txt, (Setup.W / 2) - (ctx.measureText(txt).width / 2), (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
     }
 }
 ;
 function draw() {
-    clearBackground(ctx);
+    Setup.clearBackground();
+    var ctx = Setup.ctx;
     for (var _i = 0; _i < actors.length; _i++) {
         var a = actors[_i];
         a.draw(ctx);
     }
     ctx.save();
     ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.fillRect(0, 0, W, FONT_H * 1.5 + 4);
+    ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
     var txt = ship.toString();
-    ctx.fillText(txt, 4, FONT_H * 1.5 + 2);
+    ctx.fillText(txt, 4, Setup.FONT_H * 1.5 + 2);
     ctx.restore();
 }
 ;
@@ -179,7 +185,7 @@ function GameMode() {
     }
     for (var _a = 0; _a < old.length; _a++) {
         var a = old[_a];
-        a.tick(TICK_SECS, H, W);
+        a.tick(TICK_SECS, Setup.H, Setup.W);
         if (!a.dead())
             actors.push(a);
     }

@@ -224,7 +224,7 @@ var Ship = (function () {
     Ship.prototype.toString = function () {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
-        if (!debug)
+        if (!Setup.debug)
             return score;
         var xx = (this.p.x).toFixed(1);
         var yy = (this.p.y).toFixed(1);
@@ -238,8 +238,8 @@ var Ship = (function () {
 var CheckPoint = (function () {
     function CheckPoint() {
         this.t = CHECKPOINT_MAX;
-        var x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-        var y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        var x = Random() * (Setup.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        var y = Random() * (Setup.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
         this.p = { x: x, y: y };
         this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
     }
@@ -258,10 +258,10 @@ var CheckPoint = (function () {
             + ',' + Math.round(255 * df) + ',' + (df < 0.5 ? (1 - df) : df) + ')';
         ctx.fill();
         ctx.stroke();
-        if (debug) {
+        if (Setup.debug) {
             ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
             var text = this.t.toFixed(1);
-            ctx.fillText(text, this.p.x - ctx.measureText(text).width / 2, this.p.y + (FONT_H * 1.5) / 2);
+            ctx.fillText(text, this.p.x - ctx.measureText(text).width / 2, this.p.y + (Setup.FONT_H * 1.5) / 2);
         }
         ctx.restore();
     };
@@ -370,7 +370,7 @@ var Points = (function () {
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
-            this.s = FONT_H;
+            this.s = Setup.FONT_H;
     }
     Points.prototype.dead = function () {
         return this.t <= 0;
@@ -381,7 +381,7 @@ var Points = (function () {
         ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
         var text = this.val;
         ctx.font = this.s + 'pt testFont';
-        ctx.fillText(text, this.x - ctx.measureText(text).width / 2, this.y + (FONT_H * 1.5) / 2);
+        ctx.fillText(text, this.x - ctx.measureText(text).width / 2, this.y + (Setup.FONT_H * 1.5) / 2);
         ctx.restore();
     };
     Points.prototype.tick = function (time) {

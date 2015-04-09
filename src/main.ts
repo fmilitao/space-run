@@ -1,6 +1,6 @@
 
 module Control {
-    // depends on 'toggleMode' function
+    // requires 'toggleMode(boolean) : void' function
 
     // virtual keys that matter to this game.
     enum VK {
@@ -23,7 +23,7 @@ module Control {
 
     function keyUp(e: KeyboardEvent) {
         keys[e.keyCode] = false;
-        // any key if paused or  'p' (80) key code if not paused.
+        // any key press if paused or only 'p' if not paused
         if (pause || (!pause && e.keyCode === VK.P)) {
             pause = !pause;
             toggleMode(pause);
@@ -59,71 +59,77 @@ module Control {
 // CANVAS SETUP
 //
 
-const canvas = <HTMLCanvasElement> document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
+module Setup {
 
-var W = window.innerWidth - 4;
-var H = window.innerHeight - 4;
-var debug = false;
+    const canvas = <HTMLCanvasElement> document.getElementById("canvas");
+    export const ctx = canvas.getContext("2d");
 
-//TODO add these options to the README.md file.
-// override default canvas size
-let parameters = document.URL.split('?');
-if (parameters.length > 1) {
-    parameters = parameters[1].split('&');
-    for (let i = 0; i < parameters.length; ++i) {
-        let tmp = parameters[i].split('=');
-        if (tmp.length > 1) {
-            let option = tmp[0];
-            let value = tmp[1];
-            switch (option) {
-                case 'w':
-                    W = parseInt(value);
-                    break;
-                case 'h':
-                    H = parseInt(value);
-                    break;
-                case 'd':
-                case 'debug':
-                    debug = (value.toLowerCase() === 'true');
-                default: // no other options
-                    break;
+    export var W = window.innerWidth - 4;
+    export var H = window.innerHeight - 4;
+    export var debug = false;
+
+    //TODO add these options to the README.md file.
+    // override default canvas size
+    let parameters = document.URL.split('?');
+    if (parameters.length > 1) {
+        parameters = parameters[1].split('&');
+        for (let i = 0; i < parameters.length; ++i) {
+            let tmp = parameters[i].split('=');
+            if (tmp.length > 1) {
+                let option = tmp[0];
+                let value = tmp[1];
+                switch (option) {
+                    case 'w':
+                        W = parseInt(value);
+                        break;
+                    case 'h':
+                        H = parseInt(value);
+                        break;
+                    case 'd':
+                    case 'debug':
+                        debug = (value.toLowerCase() === 'true');
+                    default: // no other options
+                        break;
+                }
             }
         }
     }
+
+    ctx.canvas.width = W;
+    ctx.canvas.height = H;
+
+    let background: ImageData = null;
+    export function clearBackground() {
+        if (background !== null) {
+            ctx.putImageData(background, 0, 0);
+        } else {
+            // draws background once, and stores it for later
+            ctx.fillStyle = "#222244";
+            ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 150; ++i) {
+                const x = Math.random() * W;
+                const y = Math.random() * H;
+                const s = Math.random() + 1
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x, y, s, 0, TWO_PI, false);
+                ctx.fillStyle = '#EDD879';
+                ctx.fill();
+                ctx.restore();
+            }
+            background = ctx.getImageData(0, 0, W, H);
+        }
+    };
+
+    export const FONT_H = 8;
+    export const FONT_HEIGHT = FONT_H * 1.5 + 4;
+    ctx.font = FONT_H + 'pt testFont';
 }
 
-ctx.canvas.width = W;
-ctx.canvas.height = H;
-
-
-let background : ImageData = null;
-function clearBackground(ctx : CanvasRenderingContext2D) {
-    if (background !== null) {
-        ctx.putImageData(background, 0, 0);
-    } else {
-        // draws background once, and stores it for later
-        ctx.fillStyle = "#222244";
-        ctx.fillRect(0, 0, W, H);
-        for (let i = 0; i < 150; ++i) {
-            const x = Math.random() * W;
-            const y = Math.random() * H;
-            const s = Math.random() + 1
-
-            ctx.save();
-            ctx.beginPath();
-            ctx.arc(x, y, s, 0, TWO_PI, false);
-            ctx.fillStyle = '#EDD879';
-            ctx.fill();
-            ctx.restore();
-        }
-        background = ctx.getImageData(0, 0, W, H);
-    }
-};
-
-const FONT_H = 8;
-const FONT_HEIGHT = FONT_H * 1.5 + 4;
-ctx.font = FONT_H + 'pt testFont';
+//
+// Game Logic
+//
 
 const MSG = [
     '-- Game Paused --',
@@ -141,21 +147,14 @@ const MSG = [
     "Power-Brake: hold 'fire engines' & 'brake'"
 ];
 
-
-
-//
-// Game Logic
-//
-
-
 // animation intervals
 const FPS = 30;
 const TICK_MILI = 1000 / FPS; // milliseconds
-const TICK_SECS =    1 / FPS; // seconds
+const TICK_SECS = 1 / FPS; // seconds
 
-const ship = new Ship(W / 2, H / 2);
+const ship = new Ship(Setup.W / 2, Setup.H / 2);
 
-let actors : Actor[] = [ship]; // initially only contains 'ship'
+let actors: Actor[] = [ship]; // initially only contains 'ship'
 
 // populate game world with initial CheckPoints
 for (let i = 0; i < 3; ++i)
@@ -181,10 +180,11 @@ function actions() {
 };
 
 function drawPaused() {
-    clearBackground(ctx);
+    Setup.clearBackground();
+    let ctx = Setup.ctx;
 
     ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, W, H);
+    ctx.fillRect(0, 0, Setup.W, Setup.H);
 
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
@@ -192,15 +192,15 @@ function drawPaused() {
     for (let i = 0; i < MSG.length; ++i) {
         const txt = MSG[i];
         ctx.fillText(txt,
-            (W / 2) - (ctx.measureText(txt).width / 2),
-            (H / 2 - (FONT_HEIGHT * MSG.length / 2)) + (FONT_HEIGHT * i));
+            (Setup.W / 2) - (ctx.measureText(txt).width / 2),
+            (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
     }
 };
 
 function draw() {
 
-    clearBackground(ctx);
-
+    Setup.clearBackground();
+    let ctx = Setup.ctx;
     for (let a of actors) {
         a.draw(ctx);
     }
@@ -209,18 +209,19 @@ function draw() {
     ctx.save();
 
     ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.fillRect(0, 0, W, FONT_H * 1.5 + 4);
+    ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
 
     ctx.fillStyle = 'white';
     ctx.lineWidth = 1;
 
     const txt = ship.toString();
-    ctx.fillText(txt, 4, FONT_H * 1.5 + 2);
+    ctx.fillText(txt, 4, Setup.FONT_H * 1.5 + 2);
     ctx.restore();
 
 };
 
 function GameMode() {
+    // only looking at actions in here avoids excessive triggering of an action
     actions();
 
     draw();
@@ -233,7 +234,7 @@ function GameMode() {
     }
 
     for (let a of old) {
-        a.tick(TICK_SECS, H, W);
+        a.tick(TICK_SECS, Setup.H, Setup.W);
         if (!a.dead())
             actors.push(a);
     }

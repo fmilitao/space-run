@@ -49,7 +49,7 @@ var collides = function(ship, p, r) {
 }
 
 // from: http://www.gamedev.net/community/forums/topic.asp?topic_id=304578
-function inters(p0 : PosXY, p1 : PosXY, c : PosXY, cw : number) {
+function inters(p0: PosXY, p1: PosXY, c: PosXY, cw: number) {
     const x0 = c.x;
     const y0 = c.y;
     const x1 = p0.x;
@@ -82,18 +82,17 @@ function fix(str, length) {
     return tmp;
 };
 
-let triangle = [[-5, -5], [-5, 5], [15, 0]];
-let missile = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
+const triangle: [number, number][] = [[-5, -5], [-5, 5], [15, 0]];
+const missile: [number, number][] = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
 
-// each entry of 'path' should contain a pair of numbers (x,y).
-function drawPath(ctx: CanvasRenderingContext2D, path : number[][]) {
+function drawPath(ctx: CanvasRenderingContext2D, path: [number, number][]) {
     ctx.beginPath();
-    let [x,y] = path[0];
+    let [x, y] = path[0];
     ctx.moveTo(x, y);
 
-    for( let i=0; i<path.length; ++i ){
-      [x,y] = path[i];
-      ctx.lineTo(x, y);
+    for (let i = 0; i < path.length; ++i) {
+        [x, y] = path[i];
+        ctx.lineTo(x, y);
     }
 
     ctx.lineJoin = 'miter';
@@ -114,7 +113,7 @@ interface Actor {
     dead(): boolean;
     tick(time: number, H?: number, W?: number): void;
     draw(ctx: CanvasRenderingContext2D): void;
-    collision(s : Ship) : void;
+    collision(s: Ship): void;
 }
 
 class Ship implements Actor {
@@ -130,7 +129,7 @@ class Ship implements Actor {
 
     constructor(x: number, y: number) {
 
-        this.power = null; // crap, union don't work well on fields.
+        this.power = null; // crap, union doesn't work well with fields.
         this.p = { x: x, y: y };
         this.v = { x: 0, y: 0 };
         this.r = 0;
@@ -314,7 +313,7 @@ class Ship implements Actor {
     toString() {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
-        if (!debug)
+        if (!Setup.debug)
             return score;
 
         var xx = (this.p.x).toFixed(1);
@@ -335,8 +334,8 @@ class CheckPoint implements Actor {
 
     constructor() {
         this.t = CHECKPOINT_MAX;
-        const x = Random() * (W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-        const y = Random() * (H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        const x = Random() * (Setup.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        const y = Random() * (Setup.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
         this.p = { x: x, y: y };
         this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
     }
@@ -361,12 +360,12 @@ class CheckPoint implements Actor {
         ctx.fill();
         ctx.stroke();
 
-        if (debug) {
+        if (Setup.debug) {
             ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
             var text = this.t.toFixed(1);
             ctx.fillText(text,
                 this.p.x - ctx.measureText(text).width / 2,
-                this.p.y + (FONT_H * 1.5) / 2);
+                this.p.y + (Setup.FONT_H * 1.5) / 2);
         }
         ctx.restore();
 
@@ -520,7 +519,7 @@ class Points implements Actor {
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
-            this.s = FONT_H;
+            this.s = Setup.FONT_H;
     }
 
     dead() {
@@ -536,7 +535,7 @@ class Points implements Actor {
         ctx.font = this.s + 'pt testFont';
         ctx.fillText(text,
             this.x - ctx.measureText(text).width / 2,
-            this.y + (FONT_H * 1.5) / 2);
+            this.y + (Setup.FONT_H * 1.5) / 2);
         ctx.restore();
     }
 
