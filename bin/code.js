@@ -1,3 +1,4 @@
+// NOTE: all public fields should be read-only outside their class.
 var PI = Math.PI;
 var TWO_PI = 2 * Math.PI;
 var Random = Math.random;
@@ -18,6 +19,162 @@ var SPARK_T = 3;
 var SPARK_F = 0.99;
 var SPARK_SIZE = 1;
 var POINTS_MAX = 3;
+var TRIANGLE = [[-5, -5], [-5, 5], [15, 0]];
+var MISSILE = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
+var Setup;
+(function (Setup) {
+    var MSG = [
+        '-- Game Paused --',
+        'Press any key to continue.',
+        '',
+        '-- Objective --',
+        'Pop all circular gue...',
+        'Warning: green gue slows you down.',
+        '',
+        '-- Controls --',
+        '       Left: a OR <left arrow>            ',
+        '      Right: d OR <right arrow>           ',
+        '    Engines: w OR <up arrow>              ',
+        '      Brake: s OR space OR <down arrow>   ',
+        "Power-Brake: hold 'fire engines' & 'brake'"
+    ];
+    function drawPath(path) {
+        Setup.ctx.beginPath();
+        var _a = path[0], x = _a[0], y = _a[1];
+        Setup.ctx.moveTo(x, y);
+        for (var i = 0; i < path.length; ++i) {
+            _b = path[i], x = _b[0], y = _b[1];
+            Setup.ctx.lineTo(x, y);
+        }
+        Setup.ctx.lineJoin = 'miter';
+        Setup.ctx.closePath();
+        var _b;
+    }
+    ;
+    Setup.drawer = {
+        drawHUD: function (shipStatus) {
+            Setup.ctx.save();
+            Setup.ctx.fillStyle = "rgba(0,0,0,0.3)";
+            Setup.ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
+            Setup.ctx.fillStyle = 'white';
+            Setup.ctx.lineWidth = 1;
+            Setup.ctx.fillText(shipStatus, 4, Setup.FONT_H * 1.5 + 2);
+            Setup.ctx.restore();
+        },
+        drawPaused: function () {
+            Setup.clearBackground();
+            Setup.ctx.fillStyle = "rgba(0,0,0,0.5)";
+            Setup.ctx.fillRect(0, 0, Setup.W, Setup.H);
+            Setup.ctx.fillStyle = 'white';
+            Setup.ctx.lineWidth = 1;
+            for (var i = 0; i < MSG.length; ++i) {
+                var txt = MSG[i];
+                Setup.ctx.fillText(txt, (Setup.W / 2) - (Setup.ctx.measureText(txt).width / 2), (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
+            }
+        },
+        drawGue: function (g) {
+            var df = g.t / GUE_MAX;
+            Setup.ctx.save();
+            Setup.ctx.beginPath();
+            Setup.ctx.arc(g.p.x, g.p.y, g.s, 0, TWO_PI, false);
+            Setup.ctx.fillStyle = GUE_COLOR + df + ')';
+            Setup.ctx.fill();
+            Setup.ctx.closePath();
+            Setup.ctx.restore();
+        },
+        drawShip: function (s) {
+            Setup.ctx.save();
+            var angle = s.angle();
+            Setup.ctx.translate(s.p.x, s.p.y);
+            Setup.ctx.rotate(angle);
+            if (Control.up && !Control.down) {
+                Setup.ctx.save();
+                Setup.ctx.beginPath();
+                Setup.ctx.moveTo(-5, -4);
+                Setup.ctx.lineTo(-5, 4);
+                Setup.ctx.lineTo(-14 - (Random() * 2), 0);
+                Setup.ctx.closePath();
+                Setup.ctx.fillStyle = "rgba(256, 236, 80, " + (Random() * 0.5 + 0.5) + ")";
+                Setup.ctx.fill();
+                Setup.ctx.restore();
+                var xx = s.p.x - (Math.cos(angle) * 17);
+                var yy = s.p.y - (Math.sin(angle) * 17);
+                actors.push(new Smoke(xx, yy, Math.cos(angle), Math.sin(angle)));
+            }
+            drawPath(TRIANGLE);
+            Setup.ctx.fillStyle = '#ff2020';
+            Setup.ctx.fill();
+            if (Control.up && Control.down) {
+                Setup.ctx.lineWidth = 4;
+                Setup.ctx.lineJoin = 'round';
+                Setup.ctx.strokeStyle = "rgba(80, 236, 256, " + (Random() * 0.6 + 0.4) + ")";
+            }
+            else {
+                if (Control.down) {
+                    Setup.ctx.lineWidth = 3;
+                    Setup.ctx.strokeStyle = 'rgba(255,20,20,0.2)';
+                }
+                else {
+                    Setup.ctx.lineWidth = 2;
+                    Setup.ctx.strokeStyle = '#ffbbbb';
+                }
+            }
+            Setup.ctx.stroke();
+            Setup.ctx.restore();
+        },
+        drawPoints: function (p) {
+            var df = (p.t / POINTS_MAX);
+            Setup.ctx.save();
+            Setup.ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
+            var text = p.val;
+            Setup.ctx.font = p.s + 'pt testFont';
+            Setup.ctx.fillText(text, p.x - Setup.ctx.measureText(text).width / 2, p.y + (Setup.FONT_H * 1.5) / 2);
+            Setup.ctx.restore();
+        },
+        drawSpark: function (s) {
+            Setup.ctx.save();
+            Setup.ctx.beginPath();
+            Setup.ctx.arc(s.p.x, s.p.y, SPARK_SIZE, 0, TWO_PI, false);
+            Setup.ctx.closePath();
+            Setup.ctx.lineWidth = 2;
+            Setup.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            Setup.ctx.fillStyle = 'rgba(255,255,0,' + ((s.t / SPARK_T) + 0.1) + ')';
+            Setup.ctx.fill();
+            Setup.ctx.stroke();
+            Setup.ctx.restore();
+        },
+        drawSmoke: function (s) {
+            var df = (s.t / SMOKE_MAX);
+            var size = 15 - 12 * df;
+            Setup.ctx.save();
+            Setup.ctx.beginPath();
+            Setup.ctx.arc(s.p.x, s.p.y, size, 0, TWO_PI, false);
+            Setup.ctx.fillStyle = s.c + (df + 0.01) + ')';
+            Setup.ctx.fill();
+            Setup.ctx.closePath();
+            Setup.ctx.restore();
+        },
+        drawCheckPoint: function (cp) {
+            var df = cp.t / CHECKPOINT_MAX;
+            Setup.ctx.save();
+            Setup.ctx.beginPath();
+            Setup.ctx.arc(cp.p.x, cp.p.y, cp.r, 0, TWO_PI, false);
+            Setup.ctx.lineWidth = 3 * (df) + 1;
+            Setup.ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
+                + ',128,' + (df < 0.5 ? (1 - df) : df) + ')';
+            Setup.ctx.fillStyle = 'rgba( 0,' + Math.round(255 * (1 - df))
+                + ',' + Math.round(255 * df) + ',' + (df < 0.5 ? (1 - df) : df) + ')';
+            Setup.ctx.fill();
+            Setup.ctx.stroke();
+            if (Setup.debug) {
+                Setup.ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
+                var text = cp.t.toFixed(1);
+                Setup.ctx.fillText(text, cp.p.x - Setup.ctx.measureText(text).width / 2, cp.p.y + (Setup.FONT_H * 1.5) / 2);
+            }
+            Setup.ctx.restore();
+        }
+    };
+})(Setup || (Setup = {}));
 var collides = function (ship, p, r) {
     var xx = ship.p.x - p.x;
     var yy = ship.p.y - p.y;
@@ -60,21 +217,6 @@ function fix(str, length) {
     return tmp;
 }
 ;
-var triangle = [[-5, -5], [-5, 5], [15, 0]];
-var missile = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
-function drawPath(ctx, path) {
-    ctx.beginPath();
-    var _a = path[0], x = _a[0], y = _a[1];
-    ctx.moveTo(x, y);
-    for (var i = 0; i < path.length; ++i) {
-        _b = path[i], x = _b[0], y = _b[1];
-        ctx.lineTo(x, y);
-    }
-    ctx.lineJoin = 'miter';
-    ctx.closePath();
-    var _b;
-}
-;
 var Ship = (function () {
     function Ship(x, y) {
         this.power = null;
@@ -112,44 +254,8 @@ var Ship = (function () {
     Ship.prototype.angle = function () {
         return TWO_PI / MAX_R * this.r;
     };
-    Ship.prototype.draw = function (ctx) {
-        ctx.save();
-        ctx.translate(this.p.x, this.p.y);
-        ctx.rotate(this.angle());
-        if (Control.up && !Control.down) {
-            ctx.save();
-            ctx.beginPath();
-            ctx.moveTo(-5, -4);
-            ctx.lineTo(-5, 4);
-            ctx.lineTo(-14 - (Random() * 2), 0);
-            ctx.closePath();
-            ctx.fillStyle = "rgba(256, 236, 80, " + (Random() * 0.5 + 0.5) + ")";
-            ctx.fill();
-            ctx.restore();
-            var xx = this.p.x - (Math.cos(this.angle()) * 17);
-            var yy = this.p.y - (Math.sin(this.angle()) * 17);
-            actors.push(new Smoke(xx, yy, Math.cos(this.angle()), Math.sin(this.angle())));
-        }
-        drawPath(ctx, triangle);
-        ctx.fillStyle = '#ff2020';
-        ctx.fill();
-        if (Control.up && Control.down) {
-            ctx.lineWidth = 4;
-            ctx.lineJoin = 'round';
-            ctx.strokeStyle = "rgba(80, 236, 256, " + (Random() * 0.6 + 0.4) + ")";
-        }
-        else {
-            if (Control.down) {
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = 'rgba(255,20,20,0.2)';
-            }
-            else {
-                ctx.lineWidth = 2;
-                ctx.strokeStyle = '#ffbbbb';
-            }
-        }
-        ctx.stroke();
-        ctx.restore();
+    Ship.prototype.draw = function (d) {
+        d.drawShip(this);
     };
     Ship.prototype.left = function () {
         this.r = (this.r - 1) % MAX_R;
@@ -246,24 +352,8 @@ var CheckPoint = (function () {
     CheckPoint.prototype.dead = function () {
         return this.t <= 0;
     };
-    CheckPoint.prototype.draw = function (ctx) {
-        var df = this.t / CHECKPOINT_MAX;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(this.p.x, this.p.y, this.r, 0, TWO_PI, false);
-        ctx.lineWidth = 3 * (df) + 1;
-        ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
-            + ',128,' + (df < 0.5 ? (1 - df) : df) + ')';
-        ctx.fillStyle = 'rgba( 0,' + Math.round(255 * (1 - df))
-            + ',' + Math.round(255 * df) + ',' + (df < 0.5 ? (1 - df) : df) + ')';
-        ctx.fill();
-        ctx.stroke();
-        if (Setup.debug) {
-            ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
-            var text = this.t.toFixed(1);
-            ctx.fillText(text, this.p.x - ctx.measureText(text).width / 2, this.p.y + (Setup.FONT_H * 1.5) / 2);
-        }
-        ctx.restore();
+    CheckPoint.prototype.draw = function (d) {
+        d.drawCheckPoint(this);
     };
     CheckPoint.prototype.tick = function (time) {
         if (this.dead())
@@ -301,16 +391,8 @@ var Smoke = (function () {
     Smoke.prototype.dead = function () {
         return this.t <= 0;
     };
-    Smoke.prototype.draw = function (ctx) {
-        var df = (this.t / SMOKE_MAX);
-        var size = 15 - 12 * df;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(this.p.x, this.p.y, size, 0, TWO_PI, false);
-        ctx.fillStyle = this.c + (df + 0.01) + ')';
-        ctx.fill();
-        ctx.closePath();
-        ctx.restore();
+    Smoke.prototype.draw = function (d) {
+        d.drawSmoke(this);
     };
     Smoke.prototype.tick = function (time) {
         this.t -= time;
@@ -336,15 +418,8 @@ var Gue = (function () {
     Gue.prototype.dead = function () {
         return this.t <= 0;
     };
-    Gue.prototype.draw = function (ctx) {
-        var df = this.t / GUE_MAX;
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(this.p.x, this.p.y, this.s, 0, TWO_PI, false);
-        ctx.fillStyle = GUE_COLOR + df + ')';
-        ctx.fill();
-        ctx.closePath();
-        ctx.restore();
+    Gue.prototype.draw = function (d) {
+        d.drawGue(this);
     };
     Gue.prototype.tick = function (time) {
         this.t -= time;
@@ -375,14 +450,8 @@ var Points = (function () {
     Points.prototype.dead = function () {
         return this.t <= 0;
     };
-    Points.prototype.draw = function (ctx) {
-        var df = (this.t / POINTS_MAX);
-        ctx.save();
-        ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
-        var text = this.val;
-        ctx.font = this.s + 'pt testFont';
-        ctx.fillText(text, this.x - ctx.measureText(text).width / 2, this.y + (Setup.FONT_H * 1.5) / 2);
-        ctx.restore();
+    Points.prototype.draw = function (d) {
+        d.drawPoints(this);
     };
     Points.prototype.tick = function (time) {
         this.t -= time;
@@ -400,18 +469,8 @@ var Spark = (function () {
     Spark.prototype.dead = function () {
         return this.t <= 0;
     };
-    Spark.prototype.draw = function (ctx) {
-        var df = (this.t / SPARK_T);
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(this.p.x, this.p.y, SPARK_SIZE, 0, TWO_PI, false);
-        ctx.closePath();
-        ctx.lineWidth = 2;
-        ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-        ctx.fillStyle = 'rgba(255,255,0,' + (df + 0.1) + ')';
-        ctx.fill();
-        ctx.stroke();
-        ctx.restore();
+    Spark.prototype.draw = function (d) {
+        d.drawSpark(this);
     };
     Spark.prototype.tick = function (time) {
         this.t -= time;

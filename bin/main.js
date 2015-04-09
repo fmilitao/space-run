@@ -105,21 +105,6 @@ var Setup;
     Setup.FONT_HEIGHT = Setup.FONT_H * 1.5 + 4;
     Setup.ctx.font = Setup.FONT_H + 'pt testFont';
 })(Setup || (Setup = {}));
-var MSG = [
-    '-- Game Paused --',
-    'Press any key to continue.',
-    '',
-    '-- Objective --',
-    'Pop all circular gue...',
-    'Warning: green gue slows you down.',
-    '',
-    '-- Controls --',
-    '       Left: a OR <left arrow>            ',
-    '      Right: d OR <right arrow>           ',
-    '    Engines: w OR <up arrow>              ',
-    '      Brake: s OR space OR <down arrow>   ',
-    "Power-Brake: hold 'fire engines' & 'brake'"
-];
 var FPS = 30;
 var TICK_MILI = 1000 / FPS;
 var TICK_SECS = 1 / FPS;
@@ -144,34 +129,14 @@ function actions() {
     }
 }
 ;
-function drawPaused() {
-    Setup.clearBackground();
-    var ctx = Setup.ctx;
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, Setup.W, Setup.H);
-    ctx.fillStyle = 'white';
-    ctx.lineWidth = 1;
-    for (var i = 0; i < MSG.length; ++i) {
-        var txt = MSG[i];
-        ctx.fillText(txt, (Setup.W / 2) - (ctx.measureText(txt).width / 2), (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
-    }
-}
-;
 function draw() {
     Setup.clearBackground();
-    var ctx = Setup.ctx;
+    var d = Setup.drawer;
     for (var _i = 0; _i < actors.length; _i++) {
         var a = actors[_i];
-        a.draw(ctx);
+        a.draw(d);
     }
-    ctx.save();
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
-    ctx.fillStyle = 'white';
-    ctx.lineWidth = 1;
-    var txt = ship.toString();
-    ctx.fillText(txt, 4, Setup.FONT_H * 1.5 + 2);
-    ctx.restore();
+    d.drawHUD(ship.toString());
 }
 ;
 function GameMode() {
@@ -191,14 +156,14 @@ function GameMode() {
     }
 }
 ;
-var old = setInterval(drawPaused, 1000);
+var old = setInterval(Setup.drawer.drawPaused, 1000);
 function toggleMode(paused) {
     if (old !== null) {
         clearInterval(old);
     }
     if (paused) {
         old = null;
-        drawPaused();
+        Setup.drawer.drawPaused();
     }
     else {
         old = setInterval(GameMode, TICK_MILI);

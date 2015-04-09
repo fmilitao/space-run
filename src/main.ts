@@ -131,22 +131,6 @@ module Setup {
 // Game Logic
 //
 
-const MSG = [
-    '-- Game Paused --',
-    'Press any key to continue.',
-    '',
-    '-- Objective --',
-    'Pop all circular gue...',
-    'Warning: green gue slows you down.',
-    '',
-    '-- Controls --',
-    '       Left: a OR <left arrow>            ',
-    '      Right: d OR <right arrow>           ',
-    '    Engines: w OR <up arrow>              ',
-    '      Brake: s OR space OR <down arrow>   ',
-    "Power-Brake: hold 'fire engines' & 'brake'"
-];
-
 // animation intervals
 const FPS = 30;
 const TICK_MILI = 1000 / FPS; // milliseconds
@@ -179,45 +163,16 @@ function actions() {
     }
 };
 
-function drawPaused() {
-    Setup.clearBackground();
-    let ctx = Setup.ctx;
-
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.fillRect(0, 0, Setup.W, Setup.H);
-
-    ctx.fillStyle = 'white';
-    ctx.lineWidth = 1;
-
-    for (let i = 0; i < MSG.length; ++i) {
-        const txt = MSG[i];
-        ctx.fillText(txt,
-            (Setup.W / 2) - (ctx.measureText(txt).width / 2),
-            (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
-    }
-};
 
 function draw() {
 
     Setup.clearBackground();
-    let ctx = Setup.ctx;
+    const d = Setup.drawer;
     for (let a of actors) {
-        a.draw(ctx);
+        a.draw(d);
     }
 
-    // HUD elements
-    ctx.save();
-
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
-
-    ctx.fillStyle = 'white';
-    ctx.lineWidth = 1;
-
-    const txt = ship.toString();
-    ctx.fillText(txt, 4, Setup.FONT_H * 1.5 + 2);
-    ctx.restore();
-
+    d.drawHUD(ship.toString());
 };
 
 function GameMode() {
@@ -247,7 +202,7 @@ function GameMode() {
 
 // this is hack due to delay of loading the font
 // we just redraw the frame each second.
-let old = setInterval(drawPaused, 1000);
+let old = setInterval(Setup.drawer.drawPaused, 1000);
 
 function toggleMode(paused: boolean) {
     if (old !== null) {
@@ -255,7 +210,7 @@ function toggleMode(paused: boolean) {
     }
     if (paused) {
         old = null;
-        drawPaused();
+        Setup.drawer.drawPaused();
     } else {
         old = setInterval(GameMode, TICK_MILI);
     }
