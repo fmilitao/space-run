@@ -20,7 +20,7 @@ _Note:_ This idea does not work all that well as implemented...
   * `d`, `debug` = `true` for debug mode
   * `w`, `h` = `int number` to pick specific world width/height
 
-Example: `?debug=true&w=500&h=500` for debug mode in a 200x200 window.
+Example: `?debug=true&w=500&h=500` for debug mode in a 500x500 window.
 
 ##Extra Credits##
 
