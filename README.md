@@ -7,7 +7,7 @@ _Note:_ This idea does not work all that well as implemented...
 
 ##Play##
 
-[Dev Version @ 8/4/2015](https://cdn.rawgit.com/fmilitao/space-run/887dceecba50815e6719e8aeea3067e45096f5d6/index.html) (hosted on [rawgit](https://rawgit.com/))
+[Dev. Version @ 2015/4/10](https://cdn.rawgit.com/fmilitao/space-run/c627929f9ad8bfa63db6e9a73c119acb98a9524a/index.html) (hosted on [rawgit](https://rawgit.com/))
 
 **Controls**:
   * Rotate left: `a` or &#8592;
@@ -16,6 +16,12 @@ _Note:_ This idea does not work all that well as implemented...
   * Brake: `s`, `spacebar` or  &#8595;
   * Power Brake: hold both `Fire engines` and `Brake`
 
+**URL Options**:
+  * `d`, `debug` = `true` for debug mode
+  * `w`, `h` = `int number` to pick specific world width/height
+
+Example: `?debug=true&w=500&h=500` for debug mode in a 200x200 window.
+
 ##Extra Credits##
 
- * Uses _PressStart2P_ font, by Cody "CodeMan38" Boisclair (cody@zone38.net).
+ * Uses _PressStart2P_ font, by Cody "CodeMan38" Boisclair ([see license file](https://github.com/fmilitao/space-run/blob/master/font/LICENSE.txt)).
