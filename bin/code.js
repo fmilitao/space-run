@@ -21,9 +21,76 @@ var SPARK_SIZE = 1;
 var POINTS_MAX = 3;
 var TRIANGLE = [[-5, -5], [-5, 5], [15, 0]];
 var MISSILE = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]];
-var Setup;
-(function (Setup) {
+;
+var World;
+(function (World) {
+    World.FONT_H = 8;
+    World.FONT_HEIGHT = World.FONT_H * 1.5 + 4;
+    var ctx;
+    World.W = window.innerWidth - 4;
+    World.H = window.innerHeight - 4;
+    World.debug = false;
+    function init() {
+        var canvas = document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        var parameters = document.URL.split('?');
+        if (parameters.length > 1) {
+            parameters = parameters[1].split('&');
+            for (var i = 0; i < parameters.length; ++i) {
+                var tmp = parameters[i].split('=');
+                if (tmp.length > 1) {
+                    var option = tmp[0];
+                    var value = tmp[1];
+                    switch (option) {
+                        case 'w':
+                            World.W = parseInt(value);
+                            break;
+                        case 'h':
+                            World.H = parseInt(value);
+                            break;
+                        case 'd':
+                        case 'debug':
+                            World.debug = (value.toLowerCase() === 'true');
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        ctx.canvas.width = World.W;
+        ctx.canvas.height = World.H;
+        ctx.font = World.FONT_H + 'pt testFont';
+    }
+    World.init = init;
+    ;
+    var background = null;
+    function clearBackground() {
+        if (background !== null) {
+            ctx.putImageData(background, 0, 0);
+        }
+        else {
+            ctx.fillStyle = "#222244";
+            ctx.fillRect(0, 0, World.W, World.H);
+            for (var i = 0; i < 150; ++i) {
+                var x = Math.random() * World.W;
+                var y = Math.random() * World.H;
+                var s = Math.random() + 1;
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x, y, s, 0, TWO_PI, false);
+                ctx.fillStyle = '#EDD879';
+                ctx.fill();
+                ctx.restore();
+            }
+            background = ctx.getImageData(0, 0, World.W, World.H);
+        }
+    }
+    World.clearBackground = clearBackground;
+    ;
     var MSG = [
+        'SPACE RUN',
+        '',
+        '',
         '-- Game Paused --',
         'Press any key to continue.',
         '',
@@ -39,155 +106,162 @@ var Setup;
         "Power-Brake: hold 'fire engines' & 'brake'"
     ];
     function drawPath(path) {
-        Setup.ctx.beginPath();
+        ctx.beginPath();
         var _a = path[0], x = _a[0], y = _a[1];
-        Setup.ctx.moveTo(x, y);
+        ctx.moveTo(x, y);
         for (var i = 0; i < path.length; ++i) {
             _b = path[i], x = _b[0], y = _b[1];
-            Setup.ctx.lineTo(x, y);
+            ctx.lineTo(x, y);
         }
-        Setup.ctx.lineJoin = 'miter';
-        Setup.ctx.closePath();
+        ctx.lineJoin = 'miter';
+        ctx.closePath();
         var _b;
     }
     ;
-    Setup.drawer = {
+    World.drawer = {
         drawHUD: function (shipStatus) {
-            Setup.ctx.save();
-            Setup.ctx.fillStyle = "rgba(0,0,0,0.3)";
-            Setup.ctx.fillRect(0, 0, Setup.W, Setup.FONT_H * 1.5 + 4);
-            Setup.ctx.fillStyle = 'white';
-            Setup.ctx.lineWidth = 1;
-            Setup.ctx.fillText(shipStatus, 4, Setup.FONT_H * 1.5 + 2);
-            Setup.ctx.restore();
+            ctx.save();
+            ctx.fillStyle = "rgba(0,0,0,0.3)";
+            ctx.fillRect(0, 0, World.W, World.FONT_H * 1.5 + 4);
+            ctx.fillStyle = 'white';
+            ctx.lineWidth = 1;
+            ctx.fillText(shipStatus, 4, World.FONT_H * 1.5 + 2);
+            ctx.restore();
         },
         drawPaused: function () {
-            Setup.clearBackground();
-            Setup.ctx.fillStyle = "rgba(0,0,0,0.5)";
-            Setup.ctx.fillRect(0, 0, Setup.W, Setup.H);
-            Setup.ctx.fillStyle = 'white';
-            Setup.ctx.lineWidth = 1;
+            clearBackground();
+            ctx.fillStyle = "rgba(0,0,0,0.5)";
+            ctx.fillRect(0, 0, World.W, World.H);
+            ctx.fillStyle = 'white';
+            ctx.lineWidth = 1;
             for (var i = 0; i < MSG.length; ++i) {
                 var txt = MSG[i];
-                Setup.ctx.fillText(txt, (Setup.W / 2) - (Setup.ctx.measureText(txt).width / 2), (Setup.H / 2 - (Setup.FONT_HEIGHT * MSG.length / 2)) + (Setup.FONT_HEIGHT * i));
+                if (i === 0) {
+                    ctx.font = 40 + 'pt testFont';
+                }
+                else {
+                    ctx.font = World.FONT_H + 'pt testFont';
+                }
+                ctx.fillText(txt, (World.W / 2) - (ctx.measureText(txt).width / 2), (World.H / 2 - (World.FONT_HEIGHT * MSG.length / 2)) + (World.FONT_HEIGHT * i));
             }
         },
         caseGue: function (g) {
             var df = g.t / GUE_MAX;
-            Setup.ctx.save();
-            Setup.ctx.beginPath();
-            Setup.ctx.arc(g.p.x, g.p.y, g.s, 0, TWO_PI, false);
-            Setup.ctx.fillStyle = GUE_COLOR + df + ')';
-            Setup.ctx.fill();
-            Setup.ctx.closePath();
-            Setup.ctx.restore();
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(g.p.x, g.p.y, g.s, 0, TWO_PI, false);
+            ctx.fillStyle = GUE_COLOR + df + ')';
+            ctx.fill();
+            ctx.closePath();
+            ctx.restore();
         },
         caseShip: function (s) {
-            Setup.ctx.save();
+            ctx.save();
             var angle = s.angle();
-            Setup.ctx.translate(s.p.x, s.p.y);
-            Setup.ctx.rotate(angle);
+            ctx.translate(s.p.x, s.p.y);
+            ctx.rotate(angle);
             if (Control.up && !Control.down) {
-                Setup.ctx.save();
-                Setup.ctx.beginPath();
-                Setup.ctx.moveTo(-5, -4);
-                Setup.ctx.lineTo(-5, 4);
-                Setup.ctx.lineTo(-14 - (Random() * 2), 0);
-                Setup.ctx.closePath();
-                Setup.ctx.fillStyle = "rgba(256, 236, 80, " + (Random() * 0.5 + 0.5) + ")";
-                Setup.ctx.fill();
-                Setup.ctx.restore();
+                ctx.save();
+                ctx.beginPath();
+                ctx.moveTo(-5, -4);
+                ctx.lineTo(-5, 4);
+                ctx.lineTo(-14 - (Random() * 2), 0);
+                ctx.closePath();
+                ctx.fillStyle = "rgba(256, 236, 80, " + (Random() * 0.5 + 0.5) + ")";
+                ctx.fill();
+                ctx.restore();
                 var xx = s.p.x - (Math.cos(angle) * 17);
                 var yy = s.p.y - (Math.sin(angle) * 17);
                 actors.push(new Smoke(xx, yy, Math.cos(angle), Math.sin(angle)));
             }
-            drawPath(TRIANGLE);
-            Setup.ctx.fillStyle = '#ff2020';
-            Setup.ctx.fill();
+            drawPath(s.shape);
+            ctx.fillStyle = '#ff2020';
+            ctx.fill();
             if (Control.up && Control.down) {
-                Setup.ctx.lineWidth = 4;
-                Setup.ctx.lineJoin = 'round';
-                Setup.ctx.strokeStyle = "rgba(80, 236, 256, " + (Random() * 0.6 + 0.4) + ")";
+                ctx.lineWidth = 4;
+                ctx.lineJoin = 'round';
+                ctx.strokeStyle = "rgba(80, 236, 256, " + (Random() * 0.6 + 0.4) + ")";
             }
             else {
                 if (Control.down) {
-                    Setup.ctx.lineWidth = 3;
-                    Setup.ctx.strokeStyle = 'rgba(255,20,20,0.2)';
+                    ctx.lineWidth = 3;
+                    ctx.strokeStyle = 'rgba(255,20,20,0.2)';
                 }
                 else {
-                    Setup.ctx.lineWidth = 2;
-                    Setup.ctx.strokeStyle = '#ffbbbb';
+                    ctx.lineWidth = 2;
+                    ctx.strokeStyle = '#ffbbbb';
                 }
             }
-            Setup.ctx.stroke();
-            Setup.ctx.restore();
+            ctx.stroke();
+            ctx.restore();
         },
         casePoints: function (p) {
             var df = (p.t / POINTS_MAX);
-            Setup.ctx.save();
-            Setup.ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
+            ctx.save();
+            ctx.fillStyle = (Random() < 0.5 ? 'rgba(255,255,0' : 'rgba(255,255,255') + ',' + (df + 0.1) + ')';
             var text = p.val;
-            Setup.ctx.font = p.s + 'pt testFont';
-            Setup.ctx.fillText(text, p.x - Setup.ctx.measureText(text).width / 2, p.y + (Setup.FONT_H * 1.5) / 2);
-            Setup.ctx.restore();
+            ctx.font = p.s + 'pt testFont';
+            ctx.fillText(text, p.x - ctx.measureText(text).width / 2, p.y + (World.FONT_H * 1.5) / 2);
+            ctx.restore();
         },
         caseSpark: function (s) {
-            Setup.ctx.save();
-            Setup.ctx.beginPath();
-            Setup.ctx.arc(s.p.x, s.p.y, SPARK_SIZE, 0, TWO_PI, false);
-            Setup.ctx.closePath();
-            Setup.ctx.lineWidth = 2;
-            Setup.ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-            Setup.ctx.fillStyle = 'rgba(255,255,0,' + ((s.t / SPARK_T) + 0.1) + ')';
-            Setup.ctx.fill();
-            Setup.ctx.stroke();
-            Setup.ctx.restore();
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(s.p.x, s.p.y, SPARK_SIZE, 0, TWO_PI, false);
+            ctx.closePath();
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+            ctx.fillStyle = 'rgba(255,255,0,' + ((s.t / SPARK_T) + 0.1) + ')';
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
         },
         caseSmoke: function (s) {
             var df = (s.t / SMOKE_MAX);
             var size = 15 - 12 * df;
-            Setup.ctx.save();
-            Setup.ctx.beginPath();
-            Setup.ctx.arc(s.p.x, s.p.y, size, 0, TWO_PI, false);
-            Setup.ctx.fillStyle = s.c + (df + 0.01) + ')';
-            Setup.ctx.fill();
-            Setup.ctx.closePath();
-            Setup.ctx.restore();
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(s.p.x, s.p.y, size, 0, TWO_PI, false);
+            ctx.fillStyle = s.c + (df + 0.01) + ')';
+            ctx.fill();
+            ctx.closePath();
+            ctx.restore();
         },
         caseCheckPoint: function (cp) {
             var df = cp.t / CHECKPOINT_MAX;
-            Setup.ctx.save();
-            Setup.ctx.beginPath();
-            Setup.ctx.arc(cp.p.x, cp.p.y, cp.r, 0, TWO_PI, false);
-            Setup.ctx.lineWidth = 3 * (df) + 1;
-            Setup.ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(cp.p.x, cp.p.y, cp.r, 0, TWO_PI, false);
+            ctx.lineWidth = 3 * (df) + 1;
+            ctx.strokeStyle = 'rgba(' + Math.round(255 * (1 - df)) + ',' + Math.round(255 * df)
                 + ',128,' + (df < 0.5 ? (1 - df) : df) + ')';
-            Setup.ctx.fillStyle = 'rgba( 0,' + Math.round(255 * (1 - df))
+            ctx.fillStyle = 'rgba( 0,' + Math.round(255 * (1 - df))
                 + ',' + Math.round(255 * df) + ',' + (df < 0.5 ? (1 - df) : df) + ')';
-            Setup.ctx.fill();
-            Setup.ctx.stroke();
-            if (Setup.debug) {
-                Setup.ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
+            ctx.fill();
+            ctx.stroke();
+            if (World.debug) {
+                ctx.fillStyle = (df < 0.5 ? 'yellow' : 'white');
                 var text = cp.t.toFixed(1);
-                Setup.ctx.fillText(text, cp.p.x - Setup.ctx.measureText(text).width / 2, cp.p.y + (Setup.FONT_H * 1.5) / 2);
+                ctx.fillText(text, cp.p.x - ctx.measureText(text).width / 2, cp.p.y + (World.FONT_H * 1.5) / 2);
             }
-            Setup.ctx.restore();
+            ctx.restore();
         }
     };
-})(Setup || (Setup = {}));
-var collides = function (ship, p, r) {
+})(World || (World = {}));
+;
+function collides(ship, p, r) {
     var xx = ship.p.x - p.x;
     var yy = ship.p.y - p.y;
     var rr = ship.radius + r;
     if (xx * xx + yy * yy > rr * rr)
         return false;
-    var p0 = ship.rot(5, -5);
-    var p1 = ship.rot(-5, 5);
-    var p2 = ship.rot(15, 0);
-    return inters(p0, p1, p, r) ||
-        inters(p1, p2, p, r) ||
-        inters(p2, p0, p, r);
-};
+    var tmp = ship.shape.map(function (x) { return ship.rot(x[0], x[1]); });
+    for (var i = 0; i < tmp.length; ++i) {
+        if (inters(tmp[i], tmp[(i + 1) % tmp.length], p, r))
+            return true;
+    }
+    return false;
+}
 function inters(p0, p1, c, cw) {
     var x0 = c.x;
     var y0 = c.y;
@@ -240,6 +314,8 @@ var playerCollider = {
     caseSmoke: function (s) { },
     casePoints: function (p) { },
 };
+;
+;
 var Ship = (function () {
     function Ship(x, y) {
         this.power = null;
@@ -250,6 +326,7 @@ var Ship = (function () {
         this.timer = 0;
         this.max = 0;
         this.radius = 15;
+        this.shape = TRIANGLE;
     }
     Ship.prototype.rot = function (x, y) {
         var cos_angle = Math.cos(this.angle());
@@ -319,8 +396,8 @@ var Ship = (function () {
         this.p.x += this.v.x * t;
         this.p.y += this.v.y * t;
         this.timer -= t;
-        var H = Setup.H;
-        var W = Setup.W;
+        var H = World.H;
+        var W = World.W;
         if (this.timer <= 0) {
             if (this.score > 0) {
                 if (this.max >= this.score)
@@ -347,7 +424,7 @@ var Ship = (function () {
     Ship.prototype.toString = function () {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
-        if (!Setup.debug)
+        if (!World.debug)
             return score;
         var xx = (this.p.x).toFixed(1);
         var yy = (this.p.y).toFixed(1);
@@ -361,11 +438,12 @@ var Ship = (function () {
     };
     return Ship;
 })();
+;
 var CheckPoint = (function () {
     function CheckPoint() {
         this.t = CHECKPOINT_MAX;
-        var x = Random() * (Setup.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-        var y = Random() * (Setup.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        var x = Random() * (World.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        var y = Random() * (World.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
         this.p = { x: x, y: y };
         this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
     }
@@ -389,6 +467,7 @@ var CheckPoint = (function () {
     };
     return CheckPoint;
 })();
+;
 var Smoke = (function () {
     function Smoke(x, y, vx, vy) {
         this.c = SMOKE_COLOR[Math.floor(Random() * SMOKE_COLOR.length)];
@@ -411,6 +490,7 @@ var Smoke = (function () {
     };
     return Smoke;
 })();
+;
 var Gue = (function () {
     function Gue(x, y) {
         this.angle = TWO_PI * Random();
@@ -437,6 +517,7 @@ var Gue = (function () {
     };
     return Gue;
 })();
+;
 var Points = (function () {
     function Points(x, y, val, s) {
         this.x = x;
@@ -446,7 +527,7 @@ var Points = (function () {
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
-            this.s = Setup.FONT_H;
+            this.s = World.FONT_H;
     }
     Points.prototype.dead = function () {
         return this.t <= 0;
@@ -459,6 +540,7 @@ var Points = (function () {
     };
     return Points;
 })();
+;
 var Spark = (function () {
     function Spark(x, y, angle) {
         this.p = { x: x + ((Random() * 5) - 2), y: y + ((Random() * 5) - 2) };
@@ -480,3 +562,4 @@ var Spark = (function () {
     };
     return Spark;
 })();
+;

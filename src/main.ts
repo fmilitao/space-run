@@ -1,3 +1,43 @@
+//
+// Game Mode Toggling
+//
+
+// animation intervals
+const FPS = 30;
+const TICK_MILI = 1000 / FPS; // milliseconds
+const TICK_SECS = 1 / FPS; // seconds
+
+const toggleMode = (() => {
+    let old = null;
+    return (paused: boolean) => {
+        if (old !== null) {
+            clearInterval(old);
+        }
+        if (paused) {
+            old = null;
+            World.drawer.drawPaused();
+        } else {
+            old = setInterval(GameMode, TICK_MILI);
+        }
+    };
+})();
+
+window.onload = (ev: Event) => {
+    // remove dummy element used to load the font before use
+    let tmp = document.getElementById('dummy');
+    tmp.parentNode.removeChild(tmp);
+
+    // initialize canvas, and world constants
+    World.init();
+    // initializes ship and actors list
+    init();
+    // start paused
+    toggleMode(true);
+};
+
+//
+// Control Stuff
+//
 
 module Control {
     // requires 'toggleMode(boolean) : void' function
@@ -54,100 +94,21 @@ module Control {
 
 };
 
-
-//
-// CANVAS SETUP
-//
-
-module Setup {
-
-    export const FONT_H = 8;
-    export const FONT_HEIGHT = FONT_H * 1.5 + 4;
-
-    export var ctx : CanvasRenderingContext2D;
-
-    export var W = window.innerWidth - 4;
-    export var H = window.innerHeight - 4;
-    export var debug = false;
-
-    export function init() {
-        const canvas = <HTMLCanvasElement> document.getElementById("canvas");
-        ctx = canvas.getContext("2d");
-        //TODO add these options to the README.md file.
-        // override default canvas size
-        let parameters = document.URL.split('?');
-        if (parameters.length > 1) {
-            parameters = parameters[1].split('&');
-            for (let i = 0; i < parameters.length; ++i) {
-                let tmp = parameters[i].split('=');
-                if (tmp.length > 1) {
-                    let option = tmp[0];
-                    let value = tmp[1];
-                    switch (option) {
-                        case 'w':
-                            W = parseInt(value);
-                            break;
-                        case 'h':
-                            H = parseInt(value);
-                            break;
-                        case 'd':
-                        case 'debug':
-                            debug = (value.toLowerCase() === 'true');
-                        default: // no other options
-                            break;
-                    }
-                }
-            }
-        }
-
-        ctx.canvas.width = W;
-        ctx.canvas.height = H;
-        ctx.font = FONT_H + 'pt testFont';
-    };
-
-    let background: ImageData = null;
-    export function clearBackground() {
-        if (background !== null) {
-            ctx.putImageData(background, 0, 0);
-        } else {
-            // draws background once, and stores it for later
-            ctx.fillStyle = "#222244";
-            ctx.fillRect(0, 0, W, H);
-            for (let i = 0; i < 150; ++i) {
-                const x = Math.random() * W;
-                const y = Math.random() * H;
-                const s = Math.random() + 1
-
-                ctx.save();
-                ctx.beginPath();
-                ctx.arc(x, y, s, 0, TWO_PI, false);
-                ctx.fillStyle = '#EDD879';
-                ctx.fill();
-                ctx.restore();
-            }
-            background = ctx.getImageData(0, 0, W, H);
-        }
-    };
-
-}
-
 //
 // Game Logic
 //
 
-// animation intervals
-const FPS = 30;
-const TICK_MILI = 1000 / FPS; // milliseconds
-const TICK_SECS = 1 / FPS; // seconds
+var ship: Ship;
+var actors: Actor[];
 
-const ship = new Ship(Setup.W / 2, Setup.H / 2);
+function init() {
+    ship = new Ship(World.W / 2, World.H / 2);
+    actors = [ship];
 
-let actors: Actor[] = [ship]; // initially only contains 'ship'
-
-// populate game world with initial CheckPoints
-for (let i = 0; i < 3; ++i)
-    actors.push(new CheckPoint());
-
+    // populate game world with initial CheckPoints
+    for (let i = 0; i < 3; ++i)
+        actors.push(new CheckPoint());
+};
 
 function actions() {
     Control.checkKeys();
@@ -170,8 +131,8 @@ function actions() {
 
 function draw() {
 
-    Setup.clearBackground();
-    const d = Setup.drawer;
+    World.clearBackground();
+    const d = World.drawer;
     for (let a of actors) {
         a.match(d);
     }
@@ -198,33 +159,4 @@ function GameMode() {
             actors.push(a);
     }
 
-};
-
-//
-// Game Mode Toggling
-//
-
-const toggleMode = (() => {
-    let old = null;
-    return (paused: boolean) => {
-        if (old !== null) {
-            clearInterval(old);
-        }
-        if (paused) {
-            old = null;
-            Setup.drawer.drawPaused();
-        } else {
-            old = setInterval(GameMode, TICK_MILI);
-        }
-    };
-})();
-
-window.onload = (ev : Event ) => {
-  // remove dummy element used to load the font before use
-  let tmp = document.getElementById('dummy');
-  tmp.parentNode.removeChild(tmp);
-
-  // initialize canvas
-  Setup.init();
-  toggleMode(true); // start paused
 };

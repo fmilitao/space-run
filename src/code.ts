@@ -34,22 +34,92 @@ const MISSILE: [number, number][] = [[-4, -4], [-4, 4], [8, 4], [12, 0], [8, -4]
 
 // case analysis of all Actors
 interface MatchActor<T> {
-    caseGue(g: Gue) : T;
-    caseShip(s: Ship) : T;
-    caseSpark(s: Spark) : T;
-    caseSmoke(s: Smoke) : T;
-    casePoints(p: Points) : T;
-    caseCheckPoint(cp: CheckPoint) : T;
-}
+    caseGue(g: Gue): T;
+    caseShip(s: Ship): T;
+    caseSpark(s: Spark): T;
+    caseSmoke(s: Smoke): T;
+    casePoints(p: Points): T;
+    caseCheckPoint(cp: CheckPoint): T;
+};
 
 //
-// Actor / HUD / Pause drawer
+// WORLD SETUP
 //
 
-// extends Setup with drawer : DrawStuff object.
-module Setup {
+module World {
+
+    export const FONT_H = 8;
+    export const FONT_HEIGHT = FONT_H * 1.5 + 4;
+
+    var ctx: CanvasRenderingContext2D;
+
+    export var W = window.innerWidth - 4;
+    export var H = window.innerHeight - 4;
+    export var debug = false;
+
+    export function init() {
+        const canvas = <HTMLCanvasElement> document.getElementById("canvas");
+        ctx = canvas.getContext("2d");
+        //TODO add these options to the README.md file.
+        // override default canvas size
+        let parameters = document.URL.split('?');
+        if (parameters.length > 1) {
+            parameters = parameters[1].split('&');
+            for (let i = 0; i < parameters.length; ++i) {
+                let tmp = parameters[i].split('=');
+                if (tmp.length > 1) {
+                    let option = tmp[0];
+                    let value = tmp[1];
+                    switch (option) {
+                        case 'w':
+                            W = parseInt(value);
+                            break;
+                        case 'h':
+                            H = parseInt(value);
+                            break;
+                        case 'd':
+                        case 'debug':
+                            debug = (value.toLowerCase() === 'true');
+                        default: // no other options
+                            break;
+                    }
+                }
+            }
+        }
+
+        ctx.canvas.width = W;
+        ctx.canvas.height = H;
+        ctx.font = FONT_H + 'pt testFont';
+    };
+
+    let background: ImageData = null;
+    export function clearBackground() {
+        if (background !== null) {
+            ctx.putImageData(background, 0, 0);
+        } else {
+            // draws background once, and stores it for later
+            ctx.fillStyle = "#222244";
+            ctx.fillRect(0, 0, W, H);
+            for (let i = 0; i < 150; ++i) {
+                const x = Math.random() * W;
+                const y = Math.random() * H;
+                const s = Math.random() + 1
+
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(x, y, s, 0, TWO_PI, false);
+                ctx.fillStyle = '#EDD879';
+                ctx.fill();
+                ctx.restore();
+            }
+            background = ctx.getImageData(0, 0, W, H);
+        }
+    };
 
     const MSG = [
+        'SPACE RUN',
+        '',
+        '',
         '-- Game Paused --',
         'Press any key to continue.',
         '',
@@ -108,10 +178,16 @@ module Setup {
 
             for (let i = 0; i < MSG.length; ++i) {
                 const txt = MSG[i];
+                if( i === 0 ){
+                  ctx.font = 40 + 'pt testFont';
+                }else{
+                  ctx.font = FONT_H + 'pt testFont';
+                }
                 ctx.fillText(txt,
                     (W / 2) - (ctx.measureText(txt).width / 2),
                     (H / 2 - (FONT_HEIGHT * MSG.length / 2)) + (FONT_HEIGHT * i));
             }
+
         },
 
         //
@@ -157,7 +233,7 @@ module Setup {
 
             }
 
-            drawPath(TRIANGLE);
+            drawPath(s.shape);
 
             ctx.fillStyle = '#ff2020';
             ctx.fill();
@@ -253,27 +329,28 @@ module Setup {
         }
     };
 
-}
+};
 
-/*
- * Utils
- */
+//
+// Utils
+//
 
-var collides = function(ship, p, r) {
-    var xx = ship.p.x - p.x;
-    var yy = ship.p.y - p.y;
-    var rr = ship.radius + r;
+function collides(ship: Ship, p: PosXY, r: number): boolean {
+    const xx = ship.p.x - p.x;
+    const yy = ship.p.y - p.y;
+    const rr = ship.radius + r;
 
     if (xx * xx + yy * yy > rr * rr)
         return false;
 
-    var p0 = ship.rot(5, -5); // FIXME: this is bad style
-    var p1 = ship.rot(-5, 5);
-    var p2 = ship.rot(15, 0);
+    const tmp = ship.shape.map(x => ship.rot(x[0], x[1]));
 
-    return inters(p0, p1, p, r) ||
-        inters(p1, p2, p, r) ||
-        inters(p2, p0, p, r);
+    for (let i = 0; i < tmp.length; ++i) {
+        if (inters(tmp[i], tmp[(i + 1) % tmp.length], p, r))
+            return true;
+    }
+
+    return false;
 }
 
 // from: http://www.gamedev.net/community/forums/topic.asp?topic_id=304578
@@ -302,7 +379,7 @@ function inters(p0: PosXY, p1: PosXY, c: PosXY, cw: number) {
     return true;
 };
 
-function fix(str, length) {
+function fix(str : string, length : number) : string {
     var tmp = str;
     while (tmp.length < length) {
         tmp = ' ' + tmp;
@@ -315,51 +392,51 @@ function fix(str, length) {
 //
 
 // checks collisions with ship
-const playerCollider : MatchActor<void> = {
+const playerCollider: MatchActor<void> = {
 
-  caseGue : (g: Gue) => {
-    if (collides(ship, g.p, g.s)) {
-        ship.slowdown(0.8 + (1 - 0.8) * (1 - g.t / GUE_MAX));
-    }
-  },
+    caseGue: (g: Gue) => {
+        if (collides(ship, g.p, g.s)) {
+            ship.slowdown(0.8 + (1 - 0.8) * (1 - g.t / GUE_MAX));
+        }
+    },
 
-  caseCheckPoint : (cp: CheckPoint) => {
-    if (collides(ship, cp.p, cp.r)) {
-        const val = cp.t * 10;
-        ship.addPoints(val);
-        cp.t = 0; // dies
+    caseCheckPoint: (cp: CheckPoint) => {
+        if (collides(ship, cp.p, cp.r)) {
+            const val = cp.t * 10;
+            ship.addPoints(val);
+            cp.t = 0; // dies
 
-        let sp = Random() * 10 + 10;
-        while (sp-- > 0)
-            actors.push(new Spark(cp.p.x, cp.p.y, Random() * TWO_PI));
+            let sp = Random() * 10 + 10;
+            while (sp-- > 0)
+                actors.push(new Spark(cp.p.x, cp.p.y, Random() * TWO_PI));
 
-        actors.push(new CheckPoint());
-        actors.push(new Points(cp.p.x, cp.p.y, ('+' + val.toFixed(1) + '!')));
-    }
-  },
+            actors.push(new CheckPoint());
+            actors.push(new Points(cp.p.x, cp.p.y, ('+' + val.toFixed(1) + '!')));
+        }
+    },
 
-  // these never collide with ship:
-  caseShip : (s: Ship) => {},
-  caseSpark : (s: Spark) => {},
-  caseSmoke : (s: Smoke) => {},
-  casePoints : (p: Points) => {},
+    // these never collide with ship:
+    caseShip: (s: Ship) => { },
+    caseSpark: (s: Spark) => { },
+    caseSmoke: (s: Smoke) => { },
+    casePoints: (p: Points) => { },
 };
 
 /*
- * Actors
- */
+* Actors
+*/
 
 
 interface PosXY {
     x: number;
     y: number;
-}
+};
 
 interface Actor {
     dead(): boolean;
     tick(time: number): void;
     match<T>(m: MatchActor<T>): T;
-}
+};
 
 class Ship implements Actor {
 
@@ -371,6 +448,7 @@ class Ship implements Actor {
     public timer: number;
     public max: number;
     public radius: number;
+    public shape : [number,number][];
 
     constructor(x: number, y: number) {
 
@@ -384,6 +462,7 @@ class Ship implements Actor {
         this.max = 0;
 
         this.radius = 15;
+        this.shape = TRIANGLE;
     }
 
     rot(x: number, y: number) {
@@ -407,12 +486,12 @@ class Ship implements Actor {
     setVel(pow: number) {
         this.v.x = pow * Math.cos(this.angle());
         this.v.y = pow * Math.sin(this.angle());
-   	}
+    }
 
-   	addVel(pow: number) {
+    addVel(pow: number) {
         this.v.x += pow * Math.cos(this.angle());
         this.v.y += pow * Math.sin(this.angle());
-   	}
+    }
 
     angle() {
         return TWO_PI / MAX_R * this.r;
@@ -465,7 +544,7 @@ class Ship implements Actor {
             this.brake();
             tmp -= this.getVel();
             this.power += tmp;
-       	}
+        }
     }
 
     tick(t: number) {
@@ -473,8 +552,8 @@ class Ship implements Actor {
         this.p.y += this.v.y * t;
 
         this.timer -= t;
-        const H = Setup.H;
-        const W = Setup.W;
+        const H = World.H;
+        const W = World.W;
 
         if (this.timer <= 0) {
             if (this.score > 0) {
@@ -503,7 +582,7 @@ class Ship implements Actor {
     toString() {
         var score = 'score: ' + fix(this.score.toFixed(1), 5) + ' '
             + (this.timer > 0 ? 'timeout: ' + this.timer.toFixed(1) + 's' : '(max: ' + this.max.toFixed(1) + ')');
-        if (!Setup.debug)
+        if (!World.debug)
             return score;
 
         var xx = (this.p.x).toFixed(1);
@@ -514,11 +593,11 @@ class Ship implements Actor {
             ', ' + fix(yy, 6) + ') vel=' + fix(vv, 6) + ' ' + pp;
     }
 
-    match<T>(m: MatchActor<T>) : T{
+    match<T>(m: MatchActor<T>): T {
         return m.caseShip(this);
     }
 
-}
+};
 
 class CheckPoint implements Actor {
 
@@ -528,8 +607,8 @@ class CheckPoint implements Actor {
 
     constructor() {
         this.t = CHECKPOINT_MAX;
-        const x = Random() * (Setup.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
-        const y = Random() * (Setup.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        const x = Random() * (World.W - CHECKPOINT_R * 2) + CHECKPOINT_R;
+        const y = Random() * (World.H - CHECKPOINT_R * 2) + CHECKPOINT_R;
         this.p = { x: x, y: y };
         this.r = (1 - this.t / CHECKPOINT_MAX) * CHECKPOINT_R + 2;
     }
@@ -554,11 +633,11 @@ class CheckPoint implements Actor {
         }
     }
 
-    match<T>(m: MatchActor<T>) : T{
+    match<T>(m: MatchActor<T>): T {
         return m.caseCheckPoint(this);
     }
 
-}
+};
 
 
 class Smoke implements Actor {
@@ -588,11 +667,11 @@ class Smoke implements Actor {
         this.v.y *= SMOKE_F;
     }
 
-    match<T>(m: MatchActor<T>) : T {
+    match<T>(m: MatchActor<T>): T {
         return m.caseSmoke(this);
     }
 
-}
+};
 
 class Gue implements Actor {
 
@@ -628,11 +707,11 @@ class Gue implements Actor {
         this.v.y *= GUE_F;
     }
 
-    match<T>(m: MatchActor<T>) : T {
+    match<T>(m: MatchActor<T>): T {
         return m.caseGue(this);
     }
 
-}
+};
 
 
 class Points implements Actor {
@@ -648,7 +727,7 @@ class Points implements Actor {
         this.p = { x: x, y: y };
         this.t = POINTS_MAX;
         if (s === undefined)
-            this.s = Setup.FONT_H;
+            this.s = World.FONT_H;
     }
 
     dead() {
@@ -659,11 +738,11 @@ class Points implements Actor {
         this.t -= time;
     }
 
-    match<T>(m: MatchActor<T>) : T {
+    match<T>(m: MatchActor<T>): T {
         return m.casePoints(this);
     }
 
-}
+};
 
 
 class Spark implements Actor {
@@ -690,8 +769,8 @@ class Spark implements Actor {
         this.v.y *= SPARK_F;
     }
 
-    match<T>(m: MatchActor<T>) : T {
+    match<T>(m: MatchActor<T>): T {
         return m.caseSpark(this);
     }
 
-}
+};

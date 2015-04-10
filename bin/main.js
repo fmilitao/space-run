@@ -1,3 +1,31 @@
+//
+// Game Mode Toggling
+//
+var FPS = 30;
+var TICK_MILI = 1000 / FPS;
+var TICK_SECS = 1 / FPS;
+var toggleMode = (function () {
+    var old = null;
+    return function (paused) {
+        if (old !== null) {
+            clearInterval(old);
+        }
+        if (paused) {
+            old = null;
+            World.drawer.drawPaused();
+        }
+        else {
+            old = setInterval(GameMode, TICK_MILI);
+        }
+    };
+})();
+window.onload = function (ev) {
+    var tmp = document.getElementById('dummy');
+    tmp.parentNode.removeChild(tmp);
+    World.init();
+    init();
+    toggleMode(true);
+};
 var Control;
 (function (Control) {
     var VK;
@@ -44,79 +72,15 @@ var Control;
     ;
 })(Control || (Control = {}));
 ;
-var Setup;
-(function (Setup) {
-    Setup.FONT_H = 8;
-    Setup.FONT_HEIGHT = Setup.FONT_H * 1.5 + 4;
-    Setup.ctx;
-    Setup.W = window.innerWidth - 4;
-    Setup.H = window.innerHeight - 4;
-    Setup.debug = false;
-    function init() {
-        var canvas = document.getElementById("canvas");
-        Setup.ctx = canvas.getContext("2d");
-        var parameters = document.URL.split('?');
-        if (parameters.length > 1) {
-            parameters = parameters[1].split('&');
-            for (var i = 0; i < parameters.length; ++i) {
-                var tmp = parameters[i].split('=');
-                if (tmp.length > 1) {
-                    var option = tmp[0];
-                    var value = tmp[1];
-                    switch (option) {
-                        case 'w':
-                            Setup.W = parseInt(value);
-                            break;
-                        case 'h':
-                            Setup.H = parseInt(value);
-                            break;
-                        case 'd':
-                        case 'debug':
-                            Setup.debug = (value.toLowerCase() === 'true');
-                        default:
-                            break;
-                    }
-                }
-            }
-        }
-        Setup.ctx.canvas.width = Setup.W;
-        Setup.ctx.canvas.height = Setup.H;
-        Setup.ctx.font = Setup.FONT_H + 'pt testFont';
-    }
-    Setup.init = init;
-    ;
-    var background = null;
-    function clearBackground() {
-        if (background !== null) {
-            Setup.ctx.putImageData(background, 0, 0);
-        }
-        else {
-            Setup.ctx.fillStyle = "#222244";
-            Setup.ctx.fillRect(0, 0, Setup.W, Setup.H);
-            for (var i = 0; i < 150; ++i) {
-                var x = Math.random() * Setup.W;
-                var y = Math.random() * Setup.H;
-                var s = Math.random() + 1;
-                Setup.ctx.save();
-                Setup.ctx.beginPath();
-                Setup.ctx.arc(x, y, s, 0, TWO_PI, false);
-                Setup.ctx.fillStyle = '#EDD879';
-                Setup.ctx.fill();
-                Setup.ctx.restore();
-            }
-            background = Setup.ctx.getImageData(0, 0, Setup.W, Setup.H);
-        }
-    }
-    Setup.clearBackground = clearBackground;
-    ;
-})(Setup || (Setup = {}));
-var FPS = 30;
-var TICK_MILI = 1000 / FPS;
-var TICK_SECS = 1 / FPS;
-var ship = new Ship(Setup.W / 2, Setup.H / 2);
-var actors = [ship];
-for (var i = 0; i < 3; ++i)
-    actors.push(new CheckPoint());
+var ship;
+var actors;
+function init() {
+    ship = new Ship(World.W / 2, World.H / 2);
+    actors = [ship];
+    for (var i = 0; i < 3; ++i)
+        actors.push(new CheckPoint());
+}
+;
 function actions() {
     Control.checkKeys();
     if (Control.left)
@@ -135,8 +99,8 @@ function actions() {
 }
 ;
 function draw() {
-    Setup.clearBackground();
-    var d = Setup.drawer;
+    World.clearBackground();
+    var d = World.drawer;
     for (var _i = 0; _i < actors.length; _i++) {
         var a = actors[_i];
         a.match(d);
@@ -161,24 +125,3 @@ function GameMode() {
     }
 }
 ;
-var toggleMode = (function () {
-    var old = null;
-    return function (paused) {
-        if (old !== null) {
-            clearInterval(old);
-        }
-        if (paused) {
-            old = null;
-            Setup.drawer.drawPaused();
-        }
-        else {
-            old = setInterval(GameMode, TICK_MILI);
-        }
-    };
-})();
-window.onload = function (ev) {
-    var tmp = document.getElementById('dummy');
-    tmp.parentNode.removeChild(tmp);
-    Setup.init();
-    toggleMode(true);
-};
