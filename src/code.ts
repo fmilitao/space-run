@@ -1,6 +1,4 @@
 
-// NOTE: all public fields should be read-only outside their class.
-
 // CONSTANTS
 const PI = Math.PI;
 const TWO_PI = 2 * Math.PI;
@@ -60,7 +58,7 @@ module World {
     export function init() {
         const canvas = <HTMLCanvasElement> document.getElementById("canvas");
         ctx = canvas.getContext("2d");
-        //TODO add these options to the README.md file.
+
         // override default canvas size
         let parameters = document.URL.split('?');
         if (parameters.length > 1) {

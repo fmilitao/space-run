@@ -1,4 +1,3 @@
-// NOTE: all public fields should be read-only outside their class.
 var PI = Math.PI;
 var TWO_PI = 2 * Math.PI;
 var Random = Math.random;
