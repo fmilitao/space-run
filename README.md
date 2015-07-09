@@ -10,10 +10,10 @@ _Note:_ This idea does not work all that well as implemented...
 [Dev. Version @ 2015/4/10](https://cdn.rawgit.com/fmilitao/space-run/c627929f9ad8bfa63db6e9a73c119acb98a9524a/index.html) (hosted on [rawgit](https://rawgit.com/))
 
 **Controls**:
-  * Rotate left: `a, ←`
-  * Rotate right: `d, →`
-  * Fire engines: `w, ↑`
-  * Brake: `s, space, ↓`
+  * Rotate left: `a`, `←`
+  * Rotate right: `d`, `→`
+  * Fire engines: `w`, `↑`
+  * Brake: `s`, `space`, `↓`
   * Power Brake: hold both `Fire engines` and `Brake`
 
 **URL Options**:
