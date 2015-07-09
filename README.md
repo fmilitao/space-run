@@ -7,7 +7,7 @@ _Note:_ This idea does not work all that well as implemented...
 
 ##Play##
 
-[Dev. Version @ 2015/4/10](https://cdn.rawgit.com/fmilitao/space-run/c627929f9ad8bfa63db6e9a73c119acb98a9524a/index.html) (hosted on [rawgit](https://rawgit.com/))
+[LINK](http://fmilitao.github.io/space-run/)
 
 **Controls**:
   * Rotate left: `a`, `←`
