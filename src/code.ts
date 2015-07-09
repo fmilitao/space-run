@@ -57,7 +57,7 @@ module World {
 
     export function init() {
         const canvas = <HTMLCanvasElement> document.getElementById("canvas");
-        ctx = canvas.getContext("2d");
+        ctx = <CanvasRenderingContext2D> canvas.getContext("2d");
 
         // override default canvas size
         let parameters = document.URL.split('?');
