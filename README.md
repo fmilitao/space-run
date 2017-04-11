@@ -1,10 +1,10 @@
-#Space Run#
+# Space Run #
 
 Collect as many circles as possible before the time runs out. Use "power brake" to do quick 90-degree turns without losing too much speed.
 
 _Note:_ This idea does not work all that well as implemented...
 
-##Play##
+## Play ##
 
 [LINK](http://fmilitao.github.io/space-run/)
 
