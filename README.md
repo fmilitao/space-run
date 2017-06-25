@@ -6,7 +6,9 @@ _Note:_ This idea does not work all that well as implemented...
 
 ## Play ##
 
-[LINK](http://fmilitao.github.io/space-run/)
+[Play using all available play area](http://fmilitao.github.io/space-run/)
+
+[Play using 800x600 play area](http://fmilitao.github.io/space-run/?w=800&h=600)
 
 **Controls**:
   * Rotate left: `a`, `←`
